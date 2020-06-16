@@ -52,3 +52,6 @@ jobs:
     - name: Final
       run: |
         yarn workspace @anticrm/dev-boot run build
+        yarn workspace @anticrm/dev-boot run dump
+      env:
+        MONGODB_URI: ${{secrets.mongodb_uri}}
