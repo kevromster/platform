@@ -17,7 +17,7 @@
 import { defineComponent, ref, reactive, inject, computed, PropType } from 'vue'
 import { Platform, Resource, getResourceKind } from '@anticrm/platform'
 import core, { Ref, Doc, Class, Instance, ClassKind, Property } from '@anticrm/platform-core'
-import { Account } from '@anticrm/platform-business'
+import { Account, User } from '@anticrm/platform-business'
 import { AnyComponent } from '@anticrm/platform-ui'
 import { getSession } from '@anticrm/platform-vue'
 import { Person } from '..'
@@ -40,10 +40,12 @@ export default defineComponent({
     // const coreService = _.deps.core
     const session = getSession()
 
-    let document: Ref<Person>
+    let document: Ref<Doc>
     if (getResourceKind(props.resource) === ClassKind) {
       const _class = props.resource as Ref<Class<Person>>
+      // TODO: following is not correct, need `newInstance`
       document = session.getModel().createDocument(_class, {
+        onBehalfOf: '' as unknown as Ref<User>,
         createdBy: '' as unknown as Ref<Account>,
         createdOn: '12 May 2020' as unknown as Property<Date>,
         firstName: str('Валентин Генрихович'),
