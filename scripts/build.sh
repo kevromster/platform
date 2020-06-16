@@ -14,11 +14,8 @@
 #  limitations under the License.
 #
 
-# B U I L D  P A C K A G E S
-yarn workspace @anticrm/platform build && \
-yarn workspace @anticrm/platform-core build && \
-yarn workspace @anticrm/platform-core-plugin build && \
-yarn workspace @anticrm/platform-core-model build && \
+# B U I L D  C O R E  P L U G I N S
+./scripts/build-core-plugins.sh && \
 
 # T E S T  P A C K A G E S
 yarn workspace @anticrm/platform run test && \
