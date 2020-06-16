@@ -28,7 +28,5 @@
     "typedoc": "^0.17.6",
     "typescript": "~3.9.4"
   },
-  "dependencies": {
-    "@anticrm/platform": "0.1.0"
-  }
+  "dependencies": {}
 }

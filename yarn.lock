@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@anticrm/platform@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@anticrm/platform/-/platform-0.1.0.tgz#3f9b5d929b958d7eaba89b63f11031793ef47325"
+  integrity sha512-uFE8aVvL6/9eqZ6dJ4p1a1fmW4MMx54RsbJkw/aWcCSg2g+lXE6a4U6MWJXv8t86lVLj5kgApVO2mWH2CDV2jw==
+
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.10.1":
   version "7.10.1"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.10.1.tgz#d5481c5095daa1c57e16e54c6f9198443afb49ff"
