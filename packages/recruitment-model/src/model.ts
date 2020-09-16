@@ -55,9 +55,6 @@ export default (S: Builder) => {
   })
 
   S.createDocument(core.class.Space, {
+    title: 'Рекрутинг' as IntlString
   }, recruitment.space.Recruitment)
-
-  S.mixin(recruitment.space.Recruitment, presentation.mixin.UXObject, {
-    label: 'Рекрутинг' as IntlString
-  })
 }

@@ -44,11 +44,8 @@ export default (S: Builder) => {
   }, workbench.application.Default)
 
   S.createDocument(core.class.Space, {
+    title: 'Контакты' as IntlString
   }, contact.space.Contact)
-
-  S.mixin(contact.space.Contact, presentation.mixin.UXObject, {
-    label: 'Контакты' as IntlString
-  })
 
   S.createMixin(workbench.mixin.SpaceExtension, core.class.Space, {
     component: S.attr(core.class.Type, {})
@@ -61,7 +58,7 @@ export default (S: Builder) => {
   S.createDocument(workbench.class.WorkbenchCreateItem, {
     label: 'Пространства / Новое пространство' as StringProperty,
     icon: undefined as unknown as Metadata<string>,
-    itemClass: core.class.Space as Ref<Class<VDoc>>  // TODO: bad cast?
+    itemClass: core.class.Space as unknown as Ref<Class<VDoc>>  // TODO: bad cast?
   })
 
   S.mixin(core.class.Space, presentation.class.DetailForm, {

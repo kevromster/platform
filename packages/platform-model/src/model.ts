@@ -95,6 +95,7 @@ export default (S: Builder) => {
   }, CoreDomain.Model)
 
   S.createClass(core.class.Space, core.class.Doc, {
+    title: S.attr(core.class.Type, {}),
   }, CoreDomain.Model)
 
   S.createClass(core.class.Title, core.class.Doc, {
