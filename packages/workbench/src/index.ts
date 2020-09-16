@@ -49,6 +49,7 @@ export default plugin('workbench' as Plugin<WorkbenchService>, {
     Workbench: '' as AnyComponent,
     Browser: '' as AnyComponent,
     NewDocument: '' as AnyComponent,
+    NewSpace: '' as AnyComponent
   },
   icon: {
     Add: '' as Asset

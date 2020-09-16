@@ -24,6 +24,7 @@ import { CoreInjectionKey, UIInjectionKey } from './utils'
 
 import Workbench from './components/Workbench.vue'
 import Perspective from './components/Perspective.vue'
+import NewSpace from './components/NewSpace.vue'
 
 /*!
  * Anticrm Platform™ Workbench Plugin
@@ -36,6 +37,7 @@ export default async (platform: Platform, deps: {
 
   platform.setResource(workbench.component.Workbench, Workbench)
   platform.setResource(workbench.component.Browser, Perspective)
+  platform.setResource(workbench.component.NewSpace, NewSpace)
 
   deps.ui.getApp()
     .provide(CoreInjectionKey, deps.core)
