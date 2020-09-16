@@ -90,10 +90,12 @@ export default defineComponent({
     function message(msg: string) {
       console.log(msg)
       const newMessage = chunterService.createMissedObjects(msg)
+      const spaceRef = uiService.getLocation().path[1] as Ref<Space>
+
       coreService.createVDoc(chunter.class.Message, {
         message: newMessage as Property<string, string>,
         comments: [],
-      })
+      }, spaceRef)
     }
 
     return { project, component, navigate, type, details, open, done, message }

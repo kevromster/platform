@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 
-import { Platform, Ref, parseMessage } from '@anticrm/platform'
+import { Platform, Ref, parseMessage, Space } from '@anticrm/platform'
 import chunter, {
   MessageElement, MessageElementKind,
   MessageText, MessageLink, ChunterService, ChunterServiceInjectionKey, Page
@@ -37,6 +37,7 @@ import { CoreService } from '@anticrm/platform-core'
 export default async (platform: Platform, deps: { core: CoreService, ui: UIService, contact: ContactService }): Promise<ChunterService> => {
 
   const coreService = deps.core
+  const uiService = deps.ui
 
   platform.setResource(chunter.component.ChunterView, ChunterView)
   platform.setResource(chunter.component.PageInfo, PageInfo)
@@ -101,10 +102,13 @@ export default async (platform: Platform, deps: { core: CoreService, ui: UIServi
         link.text = title
         if (link._id == undefined) {
           const id = coreService.generateId() as Ref<Page>
+          const spaceRef = uiService.getLocation().path[1] as Ref<Space>
+
           coreService.createVDoc(chunter.class.Page, {
             title,
             comments: []
-          }, id)
+          }, spaceRef, id)
+
           link._id = id
           link._class = chunter.class.Page
         }

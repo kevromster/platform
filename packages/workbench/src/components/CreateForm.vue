@@ -16,11 +16,11 @@
 <script lang="ts">
 
 import { defineComponent, PropType, reactive } from 'vue'
-import { Class, CreateTx, Doc, generateId, Property, Ref, VDoc } from '@anticrm/platform'
+import { Class, CreateTx, Doc, generateId, Property, Ref, Space, VDoc } from '@anticrm/platform'
 
 import core from '@anticrm/platform-core'
 
-import { getCoreService } from '@anticrm/workbench/src/utils'
+import { getCoreService, getUIService } from '@anticrm/workbench/src/utils'
 
 import OwnAttributes from '@anticrm/presentation-ui/src/components/OwnAttributes.vue'
 import InlineEdit from '@anticrm/sparkling-controls/src/InlineEdit.vue'
@@ -44,11 +44,13 @@ export default defineComponent({
   },
   setup (props, context) {
     const coreService = getCoreService()
+    const uiService = getUIService()
 
     const object = reactive({})
 
     function save () {
-      coreService.createVDoc(props._class, object)
+      const spaceRef = uiService.getLocation().path[1] as Ref<Space>
+      coreService.createVDoc(props._class, object, spaceRef)
       context.emit('done', 'save')
     }
 
