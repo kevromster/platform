@@ -44,7 +44,7 @@ export default defineComponent({
 
     const model = ui.getClassModel(props, model => {
       title.value = model.getAttribute(TITLE)
-      return model.filterAttributes([TITLE])
+      return model//.filterAttributes([TITLE])
     })
 
     return {
