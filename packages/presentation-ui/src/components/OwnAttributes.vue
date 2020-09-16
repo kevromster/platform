@@ -39,7 +39,7 @@ export default defineComponent({
   },
   setup (props) {
     function update (event: { key: string, value: string }) {
-      console.log(event)
+      console.log('[OwnAttribute.vue] update(), event: ', event)
       props.object[event.key] = event.value
     }
 

@@ -47,6 +47,8 @@ class TUser extends TPerson implements User {
 export default (S: Builder) => {
   S.add(TContact, TPerson, TUser)
 
+  console.log('!!! contact-model create model !!!')
+
   S.mixin(contact.class.Person as Ref<Class<Person>>, presentation.class.DetailForm, {
     component: contact.component.PersonProperties
   })

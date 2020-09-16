@@ -39,10 +39,14 @@ export default defineComponent({
     const presentationCore = getPresentationCore()
     const ui = getPresentationUI()
 
+  console.log('PageProperties.vue: setup()')
+
     const TITLE = 'title'
     const title = ref(presentationCore.getEmptyAttribute(props._class))
+    
 
     const model = ui.getClassModel(props, model => {
+      console.log('PageProperties.vue: setup(), getClassModel callback...')
       title.value = model.getAttribute(TITLE)
       return model.filterAttributes([TITLE])
     })

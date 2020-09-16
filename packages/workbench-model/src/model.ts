@@ -43,6 +43,8 @@ export default (S: Builder) => {
     // appClass: chunter.class.Message
   }, workbench.application.Default)
 
+  console.log('!!! create workbench-model !!!')
+
   S.createDocument(core.class.Space, {
     title: 'Контакты' as IntlString
   }, contact.space.Contact)

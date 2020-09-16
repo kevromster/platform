@@ -32,6 +32,7 @@ export default defineComponent({
     coreService.getModel().find(workbench.class.WorkbenchCreateItem, {}).then(i => items.value = i)
 
     function selectItem (item: WorkbenchCreateItem) {
+      console.log('CreateMenu.vue: selectItem() ', item)
       context.emit('select', item)
     }
 

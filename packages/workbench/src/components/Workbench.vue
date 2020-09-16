@@ -45,6 +45,7 @@ export default defineComponent({
     const uiService = getUIService()
 
     function navigateApp (app: Application) {
+      console.log('Workbench.vue navigateApp(): ', app)
       uiService.navigate(uiService.toUrl({ app: undefined, path: [app._id] }))
     }
 

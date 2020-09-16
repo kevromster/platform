@@ -49,6 +49,7 @@ export default defineComponent({
     const object = reactive({})
 
     function save () {
+      console.log('[CreateForm.vue] save(): ', object)
       const spaceRef = uiService.getLocation().path[1] as Ref<Space>
       coreService.createVDoc(props._class, object, spaceRef)
       context.emit('done', 'save')

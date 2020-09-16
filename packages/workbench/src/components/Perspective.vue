@@ -69,6 +69,7 @@ export default defineComponent({
 
     const uiService = getUIService()
     function navigate(project: Ref<Doc>) {
+      console.log(`Perspective.vue: navigate(${project})`)
       uiService.navigate(
         uiService.toUrl({ app: undefined, path: [app.value, project] })
       )
@@ -79,7 +80,7 @@ export default defineComponent({
     )
 
     function open(object: { _id: Ref<VDoc>; _class: Ref<Class<VDoc>> }) {
-      console.log("open", object)
+      console.log("Perspective.vue open(): ", object)
       details.value = object
     }
 
@@ -88,7 +89,7 @@ export default defineComponent({
     }
 
     function message(msg: string) {
-      console.log(msg)
+      console.log('[Perspective.vue] message(): ', msg)
       const newMessage = chunterService.createMissedObjects(msg)
       const spaceRef = uiService.getLocation().path[1] as Ref<Space>
 

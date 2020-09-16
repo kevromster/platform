@@ -27,6 +27,9 @@ export class VDocIndex implements Index {
   }
 
   onCreate (create: CreateTx): Promise<any> {
+
+    console.log('!!! VDocIndex.onCreate()');
+
     const doc: VDoc = {
       _space: create._space,
       _class: create._objectClass,

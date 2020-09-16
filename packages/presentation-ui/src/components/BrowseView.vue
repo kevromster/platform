@@ -54,6 +54,7 @@ export default defineComponent({
       if (shutdown) { shutdown() }
       const activeSpace = uiService.getLocation().path[1] as Ref<Space>
       const q = props.space ? { _space: props.space } as unknown as AnyLayout : activeSpace !== "" ? { _space: activeSpace } : {}
+      console.log('[BrowseView.vue] watch(), props.space: ', props.space, ', query: ', q)
       shutdown = coreService.query(props._class, q, (result: Doc[]) => {
         console.log('result: ', result)
         content.value = result

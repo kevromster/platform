@@ -100,6 +100,7 @@ export default async (platform: Platform): Promise<UIService> => {
    * @param url
    */
   function navigate (url: string) {
+    console.log(`UIService navigate(${url})`)
     if (url !== location.value) {
       // if (guard) {
       //   const target = toLinkTarget(url)

@@ -136,6 +136,7 @@ export class MemDb {
   }
 
   createDocument<M extends Doc> (_class: Ref<Class<M>>, values: Omit<M, keyof Doc>, _id?: Ref<M>): Doc {
+    console.log('!!!!!! memDb.createDocument(), _class: ', _class, ', _id: ', _id)
     const layout = { _class, _id: _id ?? this.generateId() }
     this.assign(layout, _class, values as unknown as AnyLayout)
     // this.add(layout)

@@ -69,11 +69,13 @@ export async function connect (uri: string, dbName: string, ws: WebSocket, serve
 
     async push (_class: Ref<Class<Doc>>, _id: Ref<Doc>, attribute: string, attributes: any): Promise<any> {
       const domain = memdb.getDomain(_class)
+      console.log('service.ts push(), _class ', _class, ', _id ', _id, 'domain ', domain)
       return db.collection(domain).updateOne({ _id }, { $push: { [attribute]: attributes } })
     },
 
     async update (_class: Ref<Class<Doc>>, selector: object, attributes: any): Promise<any> {
       const domain = memdb.getDomain(_class)
+      console.log('service.ts update(), _class ', _class, 'domain ', domain)
       return db.collection(domain).updateOne(selector, { $set: attributes })
     },
 

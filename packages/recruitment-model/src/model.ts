@@ -37,6 +37,8 @@ class TCandidate extends TPerson implements Candidate {
 export default (S: Builder) => {
   S.add(TCandidate)
 
+  console.log('!!! recruitment-model create model !!!')
+
   // S.createDocument(workbench.class.Application, {
   //   label: 'Найм' as StringProperty,
   //   icon: recruitment.icon.Recruitment,
