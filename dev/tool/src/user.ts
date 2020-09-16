@@ -22,7 +22,10 @@ import { Person } from '@anticrm/contact'
 import { Ref, Property, generateId, } from '@anticrm/platform'
 
 export function createUser (db: Db, email: string, username: string) {
+
   const id = generateId() as Ref<Person>
+  console.log('!!! createUser username: ' + username + ', email: ' + email + ', id: ' + id)
+
   const user = builder.createDocument(contact.class.Person, {
     name: username,
     _space: contact.space.Contact,
@@ -34,10 +37,8 @@ export function createUser (db: Db, email: string, username: string) {
     account: email,
   })
 
-  const model = builder.dumpAll()
-  console.log(model.contact[0])
-
-  return db.collection('contact').insertOne(model.contact[0])
+  console.log(user)
+  return db.collection('contact').insertOne(user)
 
 }
 

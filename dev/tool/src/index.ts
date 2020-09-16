@@ -38,6 +38,7 @@ program
   .description('create user and corresponding account in master database')
   .requiredOption('-p, --password <password>', 'user password')
   .requiredOption('-f, --fullname <fullname>', 'full user name')
+  .requiredOption('-w, --workspace <workspace>', 'workspace')
   .action((email, cmd) => {
     withDatabase(mongodbUri, client => createUser(client.db(cmd.workspace), email, cmd.fullname))
   })
@@ -62,7 +63,7 @@ program
       const p1 = createWorkspace(db, email, cmd.password, 'Organization', cmd.workspace)
       const tenant = client.db(cmd.workspace)
       const p2 = initDatabase(tenant)
-      Promise.all([p1, p2]).then(() => createUser(tenant, email, cmd.fullname)).then(() => client.close())
+      Promise.all([p1, p2]).then(() => createUser(tenant, email, cmd.fullname)).then( () => createUser(tenant, email + '2', cmd.fullname + '2') ).then(() => client.close())
     })
   })
 
