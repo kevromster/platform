@@ -61,7 +61,9 @@ export default defineComponent({
         ? chunter.component.ChunterView
         : type.value === 'chat'
           ? chunter.component.ChatView
-          : presentationUI.component.BrowseView
+          : type.value
+            ? presentationUI.component.BrowseView
+            : chunter.component.ChatView
     })
 
     // watch(() => props.location, location => {
