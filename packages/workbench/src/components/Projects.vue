@@ -14,7 +14,7 @@
 -->
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, onUnmounted } from 'vue'
 import { Doc } from '@anticrm/platform'
 import { getCoreService } from '../utils'
 import core from '@anticrm/platform-core'
@@ -32,7 +32,11 @@ export default defineComponent({
 
     const spaces = ref<Doc[]>([])
     //model.find(core.class.Space, {}).then(s => spaces.value = model.cast(s, ui.mixin.UXObject))
-    model.find(core.class.Space, {}).then(s => spaces.value = s)
+
+    const shutdown = coreService.query(core.class.Space, {}, (result: Doc[]) => {
+      spaces.value = result
+    })
+    onUnmounted(() => shutdown())
 
     const types = ref<WorkbenchCreateItem[]>([])
     coreService.getModel().find(workbench.class.WorkbenchCreateItem, {}).then(items => {
