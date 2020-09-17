@@ -81,6 +81,7 @@ export default plugin('chunter' as Plugin<ChunterService>, { core: core.id, ui: 
   },
   component: {
     ChunterView: '' as AnyComponent,
+    ChatView: '' as AnyComponent,
     PageInfo: '' as AnyComponent,
     ContactInfo: '' as AnyComponent,
     MessageInfo: '' as AnyComponent,

@@ -55,11 +55,14 @@ export default defineComponent({
     const project = computed(() => props.location.path[1])
 
     const type = ref("")
-    const component = computed(() =>
-      type.value
-        ? presentationUI.component.BrowseView
-        : chunter.component.ChunterView
-    )
+    const component = computed(() => {
+    console.log('[Perspective.vue], computing component to show, type.value: \'', type.value, '\'')
+      return type.value === 'activity'
+        ? chunter.component.ChunterView
+        : type.value === 'chat'
+          ? chunter.component.ChatView
+          : presentationUI.component.BrowseView
+    })
 
     // watch(() => props.location, location => {
     //   const space = model.get(location.path[1] as Ref<Space>)

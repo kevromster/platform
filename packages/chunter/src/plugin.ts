@@ -20,6 +20,7 @@ import chunter, {
 } from '.'
 
 import ChunterView from './components/ChunterView.vue'
+import ChatView from './components/ChatView.vue'
 import PageInfo from './components/PageInfo.vue'
 import ContactInfo from './components/ContactInfo.vue'
 import MessageInfo from './components/MessageInfo.vue'
@@ -40,6 +41,7 @@ export default async (platform: Platform, deps: { core: CoreService, ui: UIServi
   const uiService = deps.ui
 
   platform.setResource(chunter.component.ChunterView, ChunterView)
+  platform.setResource(chunter.component.ChatView, ChatView)
   platform.setResource(chunter.component.PageInfo, PageInfo)
   platform.setResource(chunter.component.ContactInfo, ContactInfo)
   platform.setResource(chunter.component.MessageInfo, MessageInfo)
