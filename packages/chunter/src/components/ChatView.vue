@@ -49,9 +49,7 @@ export default defineComponent({
       const actualActiveSpace = uiService.getLocation().path[1] as Ref<Space>
       console.log('ChatView.vue: fill result to show (from cached query):', result, 'actualActiveSpace: \'', actualActiveSpace, '\'')
 
-      if (actualActiveSpace === '') {
-        content.value = result
-      } else {
+      if (actualActiveSpace) {
         const filteredRes: Doc[] = []
         for (const doc of result) {
           if (doc['_space'] === actualActiveSpace) {
@@ -59,6 +57,8 @@ export default defineComponent({
           }
         }
         content.value = filteredRes
+      } else {
+        content.value = result
       }
     })
 
@@ -80,7 +80,7 @@ export default defineComponent({
       console.log('ChatView.vue: watch!!! newValue `', newValue, '`, oldValue `', oldValue, '`, current props.activespace `', props.activespace, '`')
       const query = { _objectClass: chunter.class.Message }
       const activeSpace = newValue
-      if (activeSpace !== '') {
+      if (activeSpace) {
         query['_space'] = activeSpace
       }
       coreService.find(core.class.CreateTx, query)
