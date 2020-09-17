@@ -46,7 +46,7 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  setup(props, context) {
     const coreService = getCoreService()
     const model = coreService.getModel()
     const chunterService = getChunterService()
@@ -76,6 +76,12 @@ export default defineComponent({
       uiService.navigate(
         uiService.toUrl({ app: undefined, path: [app.value, project] })
       )
+
+      //console.log('emit $...')
+      //this.$emit('navigate', project)
+      console.log('emit through context...')
+      context.emit('navigatex', project)
+      console.log('emitted')
     }
 
     const details = ref<{ _id: Ref<VDoc>; _class: Ref<Class<VDoc>> } | null>(
@@ -110,7 +116,7 @@ export default defineComponent({
 <template>
   <div class="workbench-perspective">
     <div class="projects">
-      <Projects @navigate="navigate" :space="project" v-model:type="type" />
+      <Projects @navigate="navigate" @navigatex="navigatex" :space="project" v-model:type="type" v-model:navigatex="navigatex" />
     </div>
     <div class="main">
       <div class="main-content">

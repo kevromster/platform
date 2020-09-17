@@ -37,6 +37,9 @@ export default defineComponent({
     ChunterItem,
   },
   props: {
+    space: {
+      type: String
+    }
   },
   setup (props, context) {
     const coreService = getCoreService()
@@ -45,19 +48,30 @@ export default defineComponent({
     const content = ref([] as Doc[])
     const activeSpace = uiService.getLocation().path[1] as Ref<Space>
 
+console.log('ChatView.vue setup(), props.space ', props.space)
+
     // const q = props.space ? { space: props.space } as unknown as AnyLayout : {}
     const query = { _objectClass: chunter.class.Message }
     if (activeSpace !== '') {
       query['_space'] = activeSpace
     }
 
+    console.log('ChatVue: make new query..')
     const shutdown = coreService.query(core.class.CreateTx, query, (result: Doc[]) => {
+      console.log('ChatVue: fill result to show: ', result)
       content.value = result
     })
 
     onUnmounted(() => shutdown())
 
-    return { open, content }
+    function navigatex(project: Ref<Doc>) {
+      console.log('!!!ChatView.vue navigateX()!!!', project)
+    }
+    function onNavigatex(project: Ref<Doc>) {
+      console.log('!!!ChatView.vue onNavigateX()!!!', project)
+    }
+
+    return { open, content, navigatex, onNavigatex }
   }
 })
 </script>

@@ -100,6 +100,7 @@ export default async (platform: Platform): Promise<CoreService> => {
   }
 
   function queryOnline (_class: Ref<Class<Doc>>, query: AnyLayout, listener: (result: Doc[]) => void): () => void {
+    console.log('queryOnline() _class ', _class)
     const q: Query = { _class, query, listener, instances: [] }
     queries.push(q)
 
