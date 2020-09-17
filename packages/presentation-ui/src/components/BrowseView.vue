@@ -39,7 +39,8 @@ export default defineComponent({
     },
     space: {
       type: String
-    }
+    },
+    activespace: String
   },
   setup (props, context) {
     const coreService = getCoreService()
@@ -50,16 +51,25 @@ export default defineComponent({
 
     let shutdown: any = null
 
-    watch(() => props._class, _class => {
+    function updateContent() {
       if (shutdown) { shutdown() }
       const activeSpace = uiService.getLocation().path[1] as Ref<Space>
-      const q = props.space ? { _space: props.space } as unknown as AnyLayout : activeSpace !== "" ? { _space: activeSpace } : {}
+      const q = props.space ? { _space: props.space } as unknown as AnyLayout : activeSpace ? { _space: activeSpace } : {}
       console.log('[BrowseView.vue] watch(), props.space: ', props.space, ', query: ', q)
       shutdown = coreService.query(props._class, q, (result: Doc[]) => {
         console.log('result: ', result)
         content.value = result
       })
+    }
+
+    watch(() => props._class, _class => {
+      updateContent()
     }, { immediate: true })
+
+    watch(() => props.activespace, (newValue, oldValue) => {
+      console.log('BrowseView.vue: watch activespace!!! newValue `', newValue, '`, oldValue `', oldValue, '`, current props.activespace `', props.activespace, '`')
+      updateContent()
+    })
 
     onUnmounted(() => shutdown())
 
