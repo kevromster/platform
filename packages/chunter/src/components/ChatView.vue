@@ -24,6 +24,7 @@ import ScrollView from '@anticrm/sparkling-controls/src/ScrollView.vue'
 import ChunterItem from './ChunterItem.vue'
 
 import core from '@anticrm/platform-core'
+import chunter from '@anticrm/chunter'
 
 import { getCoreService } from '../utils'
 
@@ -41,9 +42,8 @@ export default defineComponent({
 
     const content = ref([] as Doc[])
 
-    // TODO: query messages only?
     // const q = props.space ? { space: props.space } as unknown as AnyLayout : {}
-    const shutdown = coreService.query(core.class.CreateTx, {}, (result: Doc[]) => {
+    const shutdown = coreService.query(core.class.CreateTx, { _objectClass: chunter.class.Message }, (result: Doc[]) => {
       content.value = result
     })
 
