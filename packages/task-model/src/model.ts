@@ -53,7 +53,8 @@ export default (S: Builder) => {
   })
 
   S.createDocument(workbench.class.WorkbenchCreateItem, {
-    label: 'Задачи / Новая задача' as StringProperty,
+    label: 'Задачи' as StringProperty,
+    createNewItemLabel: 'Новая задача' as StringProperty,
     icon: task.icon.Task,
     itemClass: task.class.Task
   })

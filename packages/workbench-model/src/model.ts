@@ -32,6 +32,7 @@ export default (S: Builder) => {
 
   S.createClass(workbench.class.WorkbenchCreateItem, core.class.Doc, {
     label: S.attr(core.class.String, {}),
+    createNewItemLabel: S.attr(core.class.String, {}),
     icon: S.attr(core.class.Type, {}),
     itemClass: S.attr(core.class.Type, {})
   }, CoreDomain.Model)
@@ -62,7 +63,8 @@ export default (S: Builder) => {
   })
 
   S.createDocument(workbench.class.WorkbenchCreateItem, {
-    label: 'Пространства / Новое пространство' as StringProperty,
+    label: 'Пространства' as StringProperty,
+    createNewItemLabel: 'Новое пространство' as StringProperty,
     icon: undefined as unknown as Metadata<string>,
     itemClass: core.class.Space as unknown as Ref<Class<VDoc>>  // TODO: bad cast?
   })

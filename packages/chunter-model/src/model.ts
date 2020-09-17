@@ -74,7 +74,8 @@ export default (S: Builder) => {
   })
 
   S.createDocument(workbench.class.WorkbenchCreateItem, {
-    label: 'Chunter / Страница' as StringProperty,
+    label: 'Страницы' as StringProperty,
+    createNewItemLabel: 'Новая страница' as StringProperty,
     icon: contact.icon.Phone,
     itemClass: chunter.class.Page
   })
