@@ -15,7 +15,7 @@
 
 <script lang="ts">
 
-import { defineComponent, ref, watch, onUnmounted } from 'vue'
+import { defineComponent, ref, watch, watchEffect, onUnmounted } from 'vue'
 import { Doc, Ref, Space } from '@anticrm/platform'
 import { UIService, getUIService } from '@anticrm/platform-ui'
 
@@ -37,31 +37,32 @@ export default defineComponent({
     ChunterItem,
   },
   props: {
-    space: {
-      type: String
-    }
+    activespace: String
   },
   setup (props, context) {
     const coreService = getCoreService()
     const uiService = getUIService()
 
     const content = ref([] as Doc[])
-    const activeSpace = uiService.getLocation().path[1] as Ref<Space>
 
-console.log('ChatView.vue setup(), props.space ', props.space)
+    const shutdown = coreService.query(core.class.CreateTx, { _objectClass: chunter.class.Message }, (result: Doc[]) => {
+      const actualActiveSpace = uiService.getLocation().path[1] as Ref<Space>
+      console.log('ChatView.vue: fill result to show (from cached query):', result, 'actualActiveSpace: \'', actualActiveSpace, '\'')
 
-    // const q = props.space ? { space: props.space } as unknown as AnyLayout : {}
-    const query = { _objectClass: chunter.class.Message }
-    if (activeSpace !== '') {
-      query['_space'] = activeSpace
-    }
-
-    console.log('ChatVue: make new query..')
-    const shutdown = coreService.query(core.class.CreateTx, query, (result: Doc[]) => {
-      console.log('ChatVue: fill result to show: ', result)
-      content.value = result
+      if (actualActiveSpace === '') {
+        content.value = result
+      } else {
+        const filteredRes: Doc[] = []
+        for (const doc of result) {
+          if (doc['_space'] === actualActiveSpace) {
+            filteredRes.push(doc)
+          }
+        }
+        content.value = filteredRes
+      }
     })
 
+    // const q = props.space ? { space: props.space } as unknown as AnyLayout : {}
     onUnmounted(() => shutdown())
 
     function navigatex(project: Ref<Doc>) {
@@ -70,6 +71,24 @@ console.log('ChatView.vue setup(), props.space ', props.space)
     function onNavigatex(project: Ref<Doc>) {
       console.log('!!!ChatView.vue onNavigateX()!!!', project)
     }
+
+    watchEffect(() => {
+      console.log('ChatView.vue watchEffect')
+    })
+
+    watch(() => props.activespace, (newValue, oldValue) => {
+      console.log('ChatView.vue: watch!!! newValue `', newValue, '`, oldValue `', oldValue, '`, current props.activespace `', props.activespace, '`')
+      const query = { _objectClass: chunter.class.Message }
+      const activeSpace = newValue
+      if (activeSpace !== '') {
+        query['_space'] = activeSpace
+      }
+      coreService.find(core.class.CreateTx, query)
+        .then(result => {
+          console.log('ChatView.vue: fill result to show (from update on space change): ', result)
+          content.value = result
+        })
+    })
 
     return { open, content, navigatex, onNavigatex }
   }

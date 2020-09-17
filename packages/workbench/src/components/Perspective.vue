@@ -70,6 +70,9 @@ export default defineComponent({
     //   component.value = spaceExtension.component
     // }, { immediate: true })
 
+    //const activeSpace = 
+    const activespace = ref("")
+
     const uiService = getUIService()
     function navigate(project: Ref<Doc>) {
       console.log(`Perspective.vue: navigate(${project})`)
@@ -77,11 +80,12 @@ export default defineComponent({
         uiService.toUrl({ app: undefined, path: [app.value, project] })
       )
 
-      //console.log('emit $...')
-      //this.$emit('navigate', project)
-      console.log('emit through context...')
-      context.emit('navigatex', project)
-      console.log('emitted')
+      console.log('setActiveSpace! ' + project)
+      activespace.value = project
+
+      //console.log('emit through context...')
+      //context.emit('navigatex', project)
+      //console.log('emitted')
     }
 
     const details = ref<{ _id: Ref<VDoc>; _class: Ref<Class<VDoc>> } | null>(
@@ -108,7 +112,7 @@ export default defineComponent({
       }, spaceRef)
     }
 
-    return { project, component, navigate, type, details, open, done, message }
+    return { project, component, navigate, type, details, open, done, message, activespace }
   },
 });
 </script>
@@ -120,7 +124,7 @@ export default defineComponent({
     </div>
     <div class="main">
       <div class="main-content">
-        <widget :_class="type" :space="space" :component="component" @open="open" />
+        <widget :_class="type" :space="space" :component="component" :activespace="activespace" @open="open" />
       </div>
       <div class="input-control">
         <InputControl @message="message" />
