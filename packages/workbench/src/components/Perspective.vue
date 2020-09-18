@@ -52,7 +52,7 @@ export default defineComponent({
     const chunterService = getChunterService()
 
     const app = computed(() => props.location.path[0])
-    const project = computed(() => props.location.path[1])
+    const space = computed(() => props.location.path[1])
 
     const type = ref("")
     const component = computed(() => {
@@ -71,15 +71,12 @@ export default defineComponent({
     //   component.value = spaceExtension.component
     // }, { immediate: true })
 
-    const activespace = ref("")
     const uiService = getUIService()
 
     function navigate(project: Ref<Doc>) {
       uiService.navigate(
         uiService.toUrl({ app: undefined, path: [app.value, project] })
       )
-      console.log('setActiveSpace: ' + project)
-      activespace.value = project
     }
 
     const details = ref<{ _id: Ref<VDoc>; _class: Ref<Class<VDoc>> } | null>(
@@ -106,7 +103,7 @@ export default defineComponent({
       }, activeSpace)
     }
 
-    return { project, component, navigate, type, details, open, done, message, activespace }
+    return { space, component, navigate, type, details, open, done, message }
   },
 });
 </script>
@@ -114,11 +111,11 @@ export default defineComponent({
 <template>
   <div class="workbench-perspective">
     <div class="projects">
-      <Projects @navigate="navigate" :space="project" v-model:type="type" />
+      <Projects @navigate="navigate" :space="space" v-model:type="type" />
     </div>
     <div class="main">
       <div class="main-content">
-        <widget :_class="type" :space="space" :component="component" :activespace="activespace" @open="open" />
+        <widget :_class="type" :space="space" :component="component" @open="open" />
       </div>
       <div class="input-control">
         <InputControl @message="message" />

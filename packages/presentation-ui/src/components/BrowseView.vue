@@ -37,10 +37,7 @@ export default defineComponent({
       type: String as unknown as PropType<Ref<Class<VDoc>>>,
       required: true
     },
-    space: {
-      type: String
-    },
-    activespace: String
+    space: String
   },
   setup (props, context) {
     const coreService = getCoreService()
@@ -65,7 +62,7 @@ export default defineComponent({
       updateContent()
     }, { immediate: true })
 
-    watch(() => props.activespace, (newValue, oldValue) => updateContent())
+    watch(() => props.space, (newValue, oldValue) => updateContent())
 
     onUnmounted(() => shutdown())
 

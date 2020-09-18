@@ -37,7 +37,7 @@ export default defineComponent({
     ChunterItem,
   },
   props: {
-    activespace: String
+    space: String
   },
   setup (props, context) {
     const coreService = getCoreService()
@@ -63,9 +63,7 @@ export default defineComponent({
 
     onUnmounted(() => shutdown())
 
-    return { open, content }
-
-    watch(() => props.activespace, (newValue, oldValue) => {
+    watch(() => props.space, (newValue, oldValue) => {
       const query = { _objectClass: chunter.class.Message }
       const activeSpace = newValue
       if (activeSpace) {
@@ -73,7 +71,9 @@ export default defineComponent({
       }
       coreService.find(core.class.CreateTx, query).then(result => content.value = result)
     })
-  }
+
+    return { open, content }
+}
 })
 </script>
 
