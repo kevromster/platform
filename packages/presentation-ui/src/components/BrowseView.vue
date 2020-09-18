@@ -17,13 +17,13 @@
 
 import { defineComponent, onUnmounted, PropType, ref, watch } from 'vue'
 import workbench from '@anticrm/workbench/src'
-import { AnyLayout } from '@anticrm/platform'
+import { AnyLayout, Space } from '@anticrm/platform'
 
 import Table from '@anticrm/presentation-ui/src/components/Table.vue'
 import Icon from '@anticrm/platform-ui/src/components/Icon.vue'
 import ScrollView from '@anticrm/sparkling-controls/src/ScrollView.vue'
 
-import { getCoreService } from '@anticrm/workbench/src/utils'
+import { getCoreService, getUIService } from '@anticrm/workbench/src/utils'
 import { Class, Doc, Ref, VDoc } from '@anticrm/platform'
 
 export default defineComponent({
@@ -43,6 +43,7 @@ export default defineComponent({
   },
   setup (props, context) {
     const coreService = getCoreService()
+    const uiService = getUIService()
     const model = coreService.getModel()
 
     const content = ref([] as Doc[])
@@ -51,7 +52,8 @@ export default defineComponent({
 
     watch(() => props._class, _class => {
       if (shutdown) { shutdown() }
-      const q = props.space ? { space: props.space } as unknown as AnyLayout : {}
+      const activeSpace = uiService.getLocation().path[1] as Ref<Space>
+      const q = props.space ? { _space: props.space } as unknown as AnyLayout : activeSpace ? { _space: activeSpace } : {}
       shutdown = coreService.query(props._class, q, (result: Doc[]) => {
         console.log('result: ', result)
         content.value = result
