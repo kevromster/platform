@@ -56,7 +56,6 @@ export default defineComponent({
 
     const type = ref("")
     const component = computed(() => {
-    console.log('[Perspective.vue], computing component to show, type.value: \'', type.value, '\'')
       return type.value === 'activity'
         ? chunter.component.ChunterView
         : type.value === 'chat'
@@ -72,15 +71,14 @@ export default defineComponent({
     //   component.value = spaceExtension.component
     // }, { immediate: true })
 
-    //const activeSpace = 
     const activespace = ref("")
-
     const uiService = getUIService()
+
     function navigate(project: Ref<Doc>) {
       uiService.navigate(
         uiService.toUrl({ app: undefined, path: [app.value, project] })
       )
-      console.log('setActiveSpace! ' + project)
+      console.log('setActiveSpace: ' + project)
       activespace.value = project
     }
 

@@ -65,10 +65,7 @@ export default defineComponent({
       updateContent()
     }, { immediate: true })
 
-    watch(() => props.activespace, (newValue, oldValue) => {
-      console.log('BrowseView.vue: watch activespace!!! newValue `', newValue, '`, oldValue `', oldValue, '`, current props.activespace `', props.activespace, '`')
-      updateContent()
-    })
+    watch(() => props.activespace, (newValue, oldValue) => updateContent())
 
     onUnmounted(() => shutdown())
 

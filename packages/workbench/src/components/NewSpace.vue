@@ -65,9 +65,6 @@ export default defineComponent({
         @update:modelValue="$emit('update', title.key, $event)"
       />
     </div>
-    <!--<div>
-      <StringPresenter class="caption-1" :attribute="title" v-model="object[title.key]" />
-    </div>-->
 
     <div class="attributes">
       <OwnAttributes
