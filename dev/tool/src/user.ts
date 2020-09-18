@@ -19,14 +19,13 @@ import { builder } from '@anticrm/boot/src/boot'
 
 import contact from '@anticrm/contact-model'
 import { Person } from '@anticrm/contact'
-import { Ref, Space, Property, generateId } from '@anticrm/platform'
+import { Ref, Property, generateId, } from '@anticrm/platform'
 
 export function createUser (db: Db, email: string, username: string) {
-
   const id = generateId() as Ref<Person>
   const user = builder.createDocument(contact.class.Person, {
     name: username,
-    _space: undefined as unknown as Ref<Space>,
+    _space: contact.space.Contact,
     _createdOn: Date.now() as Property<number, Date>,
     _createdBy: 'system' as Property<string, string>,
   }, id)
