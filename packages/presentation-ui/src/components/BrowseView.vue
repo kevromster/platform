@@ -45,24 +45,21 @@ export default defineComponent({
     const model = coreService.getModel()
 
     const content = ref([] as Doc[])
-
     let shutdown: any = null
 
     function updateContent() {
-      if (shutdown) { shutdown() }
-      const activeSpace = uiService.getLocation().path[1] as Ref<Space>
-      const q = props.space ? { _space: props.space } as unknown as AnyLayout : activeSpace ? { _space: activeSpace } : {}
-      shutdown = coreService.query(props._class, q, (result: Doc[]) => {
+      if (shutdown) {
+        shutdown()
+      }
+      const query = props.space ? { _space: props.space } as unknown as AnyLayout : {}
+      shutdown = coreService.query(props._class, query, (result: Doc[]) => {
         console.log('result: ', result)
         content.value = result
       })
     }
 
-    watch(() => props._class, _class => {
-      updateContent()
-    }, { immediate: true })
-
-    watch(() => props.space, (newValue, oldValue) => updateContent())
+    watch(() => props._class, () => updateContent(), { immediate: true })
+    watch(() => props.space, () => updateContent())
 
     onUnmounted(() => shutdown())
 
