@@ -70,11 +70,16 @@ export default defineComponent({
     //   component.value = spaceExtension.component
     // }, { immediate: true })
 
+    //const activeSpace = 
+    const activespace = ref("")
+
     const uiService = getUIService()
     function navigate(project: Ref<Doc>) {
       uiService.navigate(
         uiService.toUrl({ app: undefined, path: [app.value, project] })
       )
+      console.log('setActiveSpace! ' + project)
+      activespace.value = project
     }
 
     const details = ref<{ _id: Ref<VDoc>; _class: Ref<Class<VDoc>> } | null>(
@@ -101,7 +106,7 @@ export default defineComponent({
       }, activeSpace)
     }
 
-    return { project, component, navigate, type, details, open, done, message }
+    return { project, component, navigate, type, details, open, done, message, activespace }
   },
 });
 </script>
@@ -113,7 +118,7 @@ export default defineComponent({
     </div>
     <div class="main">
       <div class="main-content">
-        <widget :_class="type" :space="space" :component="component" @open="open" />
+        <widget :_class="type" :space="space" :component="component" :activespace="activespace" @open="open" />
       </div>
       <div class="input-control">
         <InputControl @message="message" />

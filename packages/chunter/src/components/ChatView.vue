@@ -37,26 +37,48 @@ export default defineComponent({
     ChunterItem,
   },
   props: {
+    activespace: String
   },
   setup (props, context) {
     const coreService = getCoreService()
     const uiService = getUIService()
 
     const content = ref([] as Doc[])
-    const activeSpace = uiService.getLocation().path[1] as Ref<Space>
 
-    const query = { _objectClass: chunter.class.Message }
-    if (activeSpace) {
-      query['_space'] = activeSpace
-    }
+    const shutdown = coreService.query(core.class.CreateTx, { _objectClass: chunter.class.Message }, (result: Doc[]) => {
+      const actualActiveSpace = uiService.getLocation().path[1] as Ref<Space>
+      console.log('ChatView.vue: fill result to show (from cached query):', result, 'actualActiveSpace: \'', actualActiveSpace, '\'')
 
-    const shutdown = coreService.query(core.class.CreateTx, query, (result: Doc[]) => {
-      content.value = result
+      if (!actualActiveSpace) {
+        content.value = result
+      } else {
+        const filteredRes: Doc[] = []
+        for (const doc of result) {
+          if (doc['_space'] === actualActiveSpace) {
+            filteredRes.push(doc)
+          }
+        }
+        content.value = filteredRes
+      }
     })
 
     onUnmounted(() => shutdown())
 
     return { open, content }
+
+    watch(() => props.activespace, (newValue, oldValue) => {
+      console.log('ChatView.vue: watch!!! newValue `', newValue, '`, oldValue `', oldValue, '`, current props.activespace `', props.activespace, '`')
+      const query = { _objectClass: chunter.class.Message }
+      const activeSpace = newValue
+      if (activeSpace !== '') {
+        query['_space'] = activeSpace
+      }
+      coreService.find(core.class.CreateTx, query)
+        .then(result => {
+          console.log('ChatView.vue: fill result to show (from update on space change): ', result)
+          content.value = result
+        })
+    })
   }
 })
 </script>
