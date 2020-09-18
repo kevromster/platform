@@ -102,7 +102,7 @@ export interface ArrayOf<A> extends Type {
 // S P A C E S
 
 export interface Space extends Doc {
-
+  title: String
 }
 
 // T R A N S A C T I O N S

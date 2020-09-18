@@ -26,7 +26,7 @@ import StringPresenter from '@anticrm/presentation-ui/src/components/presenter/S
 import Button from '@anticrm/sparkling-controls/src/Button.vue'
 
 export default defineComponent({
-  components: { StringPresenter, OwnAttributes },
+  components: { StringPresenter, OwnAttributes, Button },
   props: {
     _class: {
       type: String as unknown as PropType<Ref<Class<VDoc>>>,
@@ -35,11 +35,13 @@ export default defineComponent({
     object: Object
   },
   setup (props, context) {
+    const coreService = getCoreService()
     const presentationCore = getPresentationCore()
     const ui = getPresentationUI()
 
     const TITLE = 'title'
     const title = ref(presentationCore.getEmptyAttribute(props._class))
+
     const model = ui.getClassModel(props, model => {
       title.value = model.getAttribute(TITLE)
       return model.filterAttributes([TITLE])
@@ -55,17 +57,17 @@ export default defineComponent({
 
 <template>
   <div class="new-space-view">
-    <!--<div>
+    <div>
       <StringPresenter
         class="caption-1"
         :attribute="title"
         :modelValue="object[title.key]"
         @update:modelValue="$emit('update', title.key, $event)"
       />
-    </div>-->
-    <div>
-      <StringPresenter class="caption-1" :attribute="title" v-model="object[title.key]" />
     </div>
+    <!--<div>
+      <StringPresenter class="caption-1" :attribute="title" v-model="object[title.key]" />
+    </div>-->
 
     <div class="attributes">
       <OwnAttributes
@@ -83,7 +85,7 @@ export default defineComponent({
 <style lang="scss">
 @import "~@anticrm/sparkling-theme/css/_variables.scss";
 
-.chunter-page-properties {
+.new-space-view {
   .attributes {
     display: flex;
     flex-wrap: wrap;

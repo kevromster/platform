@@ -31,7 +31,8 @@ export default defineComponent({
     const model = coreService.getModel()
 
     const spaces = ref<Doc[]>([])
-    model.find(core.class.Space, {}).then(s => spaces.value = model.cast(s, ui.mixin.UXObject))
+    //model.find(core.class.Space, {}).then(s => spaces.value = model.cast(s, ui.mixin.UXObject))
+    model.find(core.class.Space, {}).then(s => spaces.value = s)
 
     const types = ref<WorkbenchCreateItem[]>([])
     coreService.getModel().find(workbench.class.WorkbenchCreateItem, {}).then(i => types.value = i)
@@ -51,7 +52,7 @@ export default defineComponent({
       <a href="#" @click.prevent="$emit('navigate', undefined)">Все</a>
     </div>
     <div v-for="s in spaces" :key="s._id" class="project" :class="{selected: s._id === space}">
-      <a href="#" @click.prevent="$emit('navigate', s._id)">#{{s.label}}</a>
+      <a href="#" @click.prevent="$emit('navigate', s._id)">#{{s.title}}</a>
     </div>
 
     <div class="caption-3">Тип</div>
