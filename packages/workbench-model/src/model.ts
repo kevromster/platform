@@ -55,6 +55,10 @@ export default (S: Builder) => {
     component: chunter.component.ChunterView
   })
 
+  S.mixin(contact.space.Contact, workbench.mixin.SpaceExtension, {
+    component: chunter.component.ChatView
+  })
+
   S.createDocument(workbench.class.WorkbenchCreateItem, {
     label: 'Пространства / Новое пространство' as StringProperty,
     icon: undefined as unknown as Metadata<string>,

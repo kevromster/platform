@@ -57,7 +57,10 @@ export default defineComponent({
 
     <div class="caption-3">Тип</div>
     <div class="project">
-      <a href="#" @click.prevent="$emit('update:type', undefined)">Все</a>
+      <a href="#" @click.prevent="$emit('update:type', 'activity')">Activity (Chunter)</a>
+    </div>
+    <div class="project">
+      <a href="#" @click.prevent="$emit('update:type', 'chat')">Chat</a>
     </div>
     <div v-for="type in types" :key="type._id" class="project">
       <a href="#" @click.prevent="$emit('update:type', type.itemClass)">{{type.label}}</a>
