@@ -89,7 +89,7 @@ export default defineComponent({
           v-if="component !== ''"
           :component="component"
           :_class="createItem.itemClass"
-          :title="createItem.label"
+          :title="createItem.createNewItemLabel"
           @done="done"
         />
       </template>

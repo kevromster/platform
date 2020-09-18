@@ -49,7 +49,8 @@ export default (S: Builder) => {
   // })
 
   S.createDocument(workbench.class.WorkbenchCreateItem, {
-    label: 'Найм / Новый Кандидат' as StringProperty,
+    label: 'Кандидаты' as StringProperty,
+    createNewItemLabel: 'Новый кандидат' as StringProperty,
     icon: recruitment.icon.Recruitment,
     itemClass: recruitment.class.Candidate
   })

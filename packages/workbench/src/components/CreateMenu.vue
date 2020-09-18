@@ -44,7 +44,7 @@ export default defineComponent({
   <div class="workbench-create-menu">
     <div class="content" :class="{show: visible}">
       <div v-for="item in items" class="item" :key="item._id">
-        <a href="#" @click.prevent="selectItem(item)">{{ item.label }}</a>
+        <a href="#" @click.prevent="selectItem(item)">{{ item.createNewItemLabel }}</a>
       </div>
     </div>
   </div>

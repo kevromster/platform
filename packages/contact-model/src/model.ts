@@ -56,7 +56,8 @@ export default (S: Builder) => {
   })
 
   S.createDocument(workbench.class.WorkbenchCreateItem, {
-    label: 'Контакт / Новый Пользователь' as StringProperty,
+    label: 'Контакты' as StringProperty,
+    createNewItemLabel: 'Новый пользователь' as StringProperty,
     icon: contact.icon.Phone,
     itemClass: contact.mixin.User as Ref<Class<VDoc>> // TODO: fix itemClass type
   })
