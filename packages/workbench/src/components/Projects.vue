@@ -35,7 +35,16 @@ export default defineComponent({
     model.find(core.class.Space, {}).then(s => spaces.value = s)
 
     const types = ref<WorkbenchCreateItem[]>([])
-    coreService.getModel().find(workbench.class.WorkbenchCreateItem, {}).then(i => types.value = i)
+    coreService.getModel().find(workbench.class.WorkbenchCreateItem, {}).then(items => {
+      // do not show spaces in types list
+      for (let i in items) {
+        if (items[i].itemClass === core.class.Space) {
+          items.splice(i, 1)
+          break
+        }
+      }
+      types.value = items
+    })
 
     return {
       spaces,
