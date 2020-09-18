@@ -16,7 +16,8 @@
 <script lang="ts">
 
 import { defineComponent, ref, watch, onUnmounted } from 'vue'
-import { Doc } from '@anticrm/platform'
+import { Doc, Ref, Space } from '@anticrm/platform'
+import { UIService, getUIService } from '@anticrm/platform-ui'
 
 import Table from '@anticrm/presentation-ui/src/components/Table.vue'
 import Icon from '@anticrm/platform-ui/src/components/Icon.vue'
@@ -39,11 +40,17 @@ export default defineComponent({
   },
   setup (props, context) {
     const coreService = getCoreService()
+    const uiService = getUIService()
 
     const content = ref([] as Doc[])
+    const activeSpace = uiService.getLocation().path[1] as Ref<Space>
 
-    // const q = props.space ? { space: props.space } as unknown as AnyLayout : {}
-    const shutdown = coreService.query(core.class.CreateTx, { _objectClass: chunter.class.Message }, (result: Doc[]) => {
+    const query = { _objectClass: chunter.class.Message }
+    if (activeSpace) {
+      query['_space'] = activeSpace
+    }
+
+    const shutdown = coreService.query(core.class.CreateTx, query, (result: Doc[]) => {
       content.value = result
     })
 
