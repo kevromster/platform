@@ -44,33 +44,21 @@ export default defineComponent({
     const uiService = getUIService()
 
     const content = ref([] as Doc[])
+    let shutdown: any = null
 
-    const shutdown = coreService.query(core.class.CreateTx, { _objectClass: chunter.class.Message }, (result: Doc[]) => {
-      const actualActiveSpace = uiService.getLocation().path[1] as Ref<Space>
-
-      if (actualActiveSpace) {
-        const filteredRes: Doc[] = []
-        for (const doc of result) {
-          if (doc['_space'] === actualActiveSpace) {
-            filteredRes.push(doc)
-          }
-        }
-        content.value = filteredRes
-      } else {
-        content.value = result
+    function updateContent() {
+      if (shutdown) {
+        shutdown()
       }
-    })
-
-    onUnmounted(() => shutdown())
-
-    watch(() => props.space, (newValue, oldValue) => {
       const query = { _objectClass: chunter.class.Message }
-      const activeSpace = newValue
-      if (activeSpace) {
-        query['_space'] = activeSpace
+      if (props.space) {
+        query['_space'] = props.space
       }
-      coreService.find(core.class.CreateTx, query).then(result => content.value = result)
-    })
+      shutdown = coreService.query(core.class.CreateTx, query, result => content.value = result)
+    }
+
+    watch(() => props.space, () => updateContent(), { immediate: true })
+    onUnmounted(() => shutdown())
 
     return { open, content }
 }
