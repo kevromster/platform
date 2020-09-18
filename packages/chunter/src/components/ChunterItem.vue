@@ -26,7 +26,8 @@ export default defineComponent({
   components: {
   },
   props: {
-    tx: Object as PropType<CreateTx>
+    tx: Object as PropType<CreateTx>,
+    showId: Boolean
   },
   setup (props, context) {
     const contactService = getContactService()
@@ -38,8 +39,9 @@ export default defineComponent({
 
     const component = presentationCore.getComponentExtension(props.tx._objectClass, chunter.mixin.ChunterInfo)
     const messageTime = computed(() => new Date(props.tx._date).toLocaleString())
+    const showId = computed(() => props.showId)
 
-    return { user, component, messageTime }
+    return { user, component, messageTime, showId }
   }
 })
 </script>
@@ -48,7 +50,12 @@ export default defineComponent({
   <div class="chunter-chunter-item">
     <img class="avatar" src="../../assets/ava2x48.jpg" />
     <div class="details">
-      <b>{{user?.name}} {{ user?._id }}</b> {{ messageTime }}
+      <div v-if="showId">
+        <b>{{user?.name}} {{ user?._id }}</b> {{ messageTime }}
+      </div>
+      <div v-else>
+        <b>{{user?.name}}</b> {{ messageTime }}
+      </div>
       <div>
         <widget :component="component" :tx="tx" @open="$emit('open', $event)" />
       </div>

@@ -90,7 +90,7 @@ export default defineComponent({
     </div>
     <ScrollView>
       <div class="content">
-        <ChunterItem :tx="doc" v-for="doc in content" :key="doc._id" @open="$emit('open', $event)" />
+        <ChunterItem :tx="doc" v-for="doc in content" :key="doc._id" :showId=false @open="$emit('open', $event)" />
       </div>
     </ScrollView>
   </div>
