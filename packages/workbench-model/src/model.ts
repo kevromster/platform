@@ -19,7 +19,7 @@ import chunter from '@anticrm/chunter-model'
 import contact from '@anticrm/contact-model'
 import presentation from '@anticrm/presentation-core'
 
-import { StringProperty, CoreDomain } from '@anticrm/platform'
+import { StringProperty, CoreDomain, Metadata, Ref, Class, VDoc } from '@anticrm/platform'
 import { IntlString } from '@anticrm/platform-i18n'
 
 export default (S: Builder) => {
@@ -56,5 +56,15 @@ export default (S: Builder) => {
 
   S.mixin(contact.space.Contact, workbench.mixin.SpaceExtension, {
     component: chunter.component.ChunterView
+  })
+
+  S.createDocument(workbench.class.WorkbenchCreateItem, {
+    label: 'Пространства / Новое пространство' as StringProperty,
+    icon: undefined as unknown as Metadata<string>,
+    itemClass: core.class.Space as Ref<Class<VDoc>>  // TODO: bad cast?
+  })
+
+  S.mixin(core.class.Space, presentation.class.DetailForm, {
+    component: workbench.component.NewSpace
   })
 }
