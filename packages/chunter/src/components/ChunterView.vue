@@ -16,7 +16,7 @@
 <script lang="ts">
 
 import { defineComponent, ref, watch, onUnmounted } from 'vue'
-import { Doc } from '@anticrm/platform'
+import { AnyLayout, Doc } from '@anticrm/platform'
 
 import Table from '@anticrm/presentation-ui/src/components/Table.vue'
 import Icon from '@anticrm/platform-ui/src/components/Icon.vue'
@@ -35,17 +35,22 @@ export default defineComponent({
     ChunterItem,
   },
   props: {
+    space: String
   },
   setup (props, context) {
     const coreService = getCoreService()
-
     const content = ref([] as Doc[])
+    let shutdown: any = null
 
-    // const q = props.space ? { space: props.space } as unknown as AnyLayout : {}
-    const shutdown = coreService.query(core.class.CreateTx, {}, (result: Doc[]) => {
-      content.value = result
-    })
+    function updateContent() {
+      if (shutdown) {
+        shutdown()
+      }
+      const query = props.space ? { _space: props.space } as unknown as AnyLayout : {}
+      shutdown = coreService.query(core.class.CreateTx, query, result => content.value = result)
+    }
 
+    watch(() => props.space, () => updateContent(), { immediate: true })
     onUnmounted(() => shutdown())
 
     return { open, content }
