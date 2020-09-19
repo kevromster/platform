@@ -61,6 +61,10 @@ export default (S: Builder) => {
     component: S.attr(core.class.Type, {})
   })
 
+  S.mixin(core.class.Space, chunter.mixin.ChunterInfo, {
+    component: chunter.component.SpaceInfo
+  })
+
   S.mixin(chunter.class.Page, chunter.mixin.ChunterInfo, {
     component: chunter.component.PageInfo
   })

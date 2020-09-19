@@ -85,6 +85,7 @@ export default plugin('chunter' as Plugin<ChunterService>, { core: core.id, ui: 
     PageInfo: '' as AnyComponent,
     ContactInfo: '' as AnyComponent,
     MessageInfo: '' as AnyComponent,
+    SpaceInfo: '' as AnyComponent,
     PageProperties: '' as AnyComponent,
   },
   mixin: {

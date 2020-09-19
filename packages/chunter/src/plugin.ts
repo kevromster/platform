@@ -24,6 +24,7 @@ import ChatView from './components/ChatView.vue'
 import PageInfo from './components/PageInfo.vue'
 import ContactInfo from './components/ContactInfo.vue'
 import MessageInfo from './components/MessageInfo.vue'
+import SpaceInfo from './components/SpaceInfo.vue'
 import PageProperties from './components/PageProperties.vue'
 
 import { ContactService } from '@anticrm/contact'
@@ -45,6 +46,7 @@ export default async (platform: Platform, deps: { core: CoreService, ui: UIServi
   platform.setResource(chunter.component.PageInfo, PageInfo)
   platform.setResource(chunter.component.ContactInfo, ContactInfo)
   platform.setResource(chunter.component.MessageInfo, MessageInfo)
+  platform.setResource(chunter.component.SpaceInfo, SpaceInfo)
   platform.setResource(chunter.component.PageProperties, PageProperties)
 
   function parseXMLMessage (message: string): MessageElement[] {
