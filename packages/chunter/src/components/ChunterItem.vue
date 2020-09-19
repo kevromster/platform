@@ -39,9 +39,8 @@ export default defineComponent({
 
     const component = presentationCore.getComponentExtension(props.tx._objectClass, chunter.mixin.ChunterInfo)
     const messageTime = computed(() => new Date(props.tx._date).toLocaleString())
-    const showId = computed(() => props.showId)
 
-    return { user, component, messageTime, showId }
+    return { user, component, messageTime }
   }
 })
 </script>
