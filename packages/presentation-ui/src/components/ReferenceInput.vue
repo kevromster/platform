@@ -19,7 +19,7 @@ import Icon from '@anticrm/platform-ui/src/components/Icon.vue'
 import ui from '@anticrm/platform-ui'
 
 import presentationCore from '@anticrm/presentation-core'
-import { Class, Ref, VDoc, StringProperty } from '@anticrm/platform'
+import { Class, Ref, VDoc, StringProperty, Space } from '@anticrm/platform'
 import { getCoreService, getPresentationCore } from '../utils'
 
 import core from '@anticrm/platform-core'
@@ -81,12 +81,12 @@ export default defineComponent({
       component.value = ''
     }
     function findSpaces(userPrefix: string): Promise<CompletionItem[]> {
-      return model.find(core.class.Space, {}).then(docs => {
+      return coreService.find(core.class.Space, {}).then(docs => {
+        const all = docs as Space[]
         let items: CompletionItem[] = []
-        const all = model.cast(docs, pcore.mixin.UXObject)
         for (const value of all) {
-          if (startsWith(value.label, userPrefix) && value.label !== userPrefix) {
-            let kk = value.label
+          if (startsWith(value.title, userPrefix) && value.title !== userPrefix) {
+            let kk = value.title
             items.push({ key: kk, label: kk, title: kk + " - Space", class: core.class.Space, id: value._id } as CompletionItem)
           }
         }
@@ -138,7 +138,7 @@ export default defineComponent({
     }
 
     function findSpace(title: string): Promise<ItemRefefence[]> {
-      return coreService.find(pcore.mixin.UXObject, { label: title as StringProperty }).then((docs) => {
+      return coreService.find(core.class.Space, { title: title as StringProperty }).then((docs) => {
         return docs.map((e) => {
           return { id: e._id, class: e._class } as ItemRefefence
         })
