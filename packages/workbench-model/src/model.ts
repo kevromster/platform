@@ -45,7 +45,7 @@ export default (S: Builder) => {
   }, workbench.application.Default)
 
   S.createDocument(core.class.Space, {
-    title: 'Контакты' as IntlString
+    title: 'Контакты' as StringProperty
   }, contact.space.Contact)
 
   S.createMixin(workbench.mixin.SpaceExtension, core.class.Space, {

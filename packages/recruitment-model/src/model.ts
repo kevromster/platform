@@ -56,6 +56,6 @@ export default (S: Builder) => {
   })
 
   S.createDocument(core.class.Space, {
-    title: 'Рекрутинг' as IntlString
+    title: 'Рекрутинг' as StringProperty
   }, recruitment.space.Recruitment)
 }
