@@ -54,6 +54,7 @@ export class TPerson extends TContact implements Person {
 @ModelMixin(contact.mixin.User, contact.class.Person)
 class TUser extends TPerson implements User {
   @Prop() @UX('Аккаунт' as IntlString) account!: string
+  @Prop() @UX('Пространства' as IntlString) spaces!: Ref<Space>[]
 }
 
 export function model (S: Builder) {

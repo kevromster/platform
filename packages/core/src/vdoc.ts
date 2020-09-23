@@ -30,6 +30,7 @@ export interface List extends Emb {
 export interface Space extends Doc {
   name: string
   lists: List[]
+  users?: string[] // list users (emails) have access to the space; if absent, the space is public (accessible by everyone)
 }
 
 export interface VDoc extends Doc {

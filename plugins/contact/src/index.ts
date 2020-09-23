@@ -14,7 +14,7 @@
 //
 
 import { plugin, Plugin, Service, Metadata } from '@anticrm/platform'
-import { Mixin, Property, Ref, VDoc } from '@anticrm/core'
+import { Mixin, Property, Ref, Space, VDoc } from '@anticrm/core'
 
 import ui, { Asset, AnyComponent } from '@anticrm/platform-ui'
 import core from '@anticrm/platform-core'
@@ -32,6 +32,7 @@ export interface Person extends Contact {
 
 export interface User extends Person {
   account: string
+  spaces: Ref<Space>[] // list of spaces the user has access to
 }
 
 // P L U G I N

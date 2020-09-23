@@ -33,6 +33,7 @@ export function createUser (db: Db, email: string, username: string) {
 
   builder.mixinDocument(user, contact.mixin.User, {
     account: email,
+    spaces: []
   })
 
   console.log(user)
