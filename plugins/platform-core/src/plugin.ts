@@ -127,6 +127,16 @@ export default async (platform: Platform): Promise<CoreService> => {
     return createDoc(vdoc)
   }
 
+  function createSpace (name: string): Promise<void> {
+    const space: Space = {
+      _id: generateId(),
+      _class: core.class.Space,
+      name,
+      lists: []
+    }
+    return createDoc(space)
+  }
+
   return {
     getModel () { return model },
     query,
@@ -134,6 +144,7 @@ export default async (platform: Platform): Promise<CoreService> => {
     findOne,
     createDoc,
     createVDoc,
+    createSpace,
     generateId
   }
 
