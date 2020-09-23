@@ -128,13 +128,11 @@ export default async (platform: Platform): Promise<CoreService> => {
   }
 
   function createSpace (name: string): Promise<void> {
-    const space: Space = {
-      _id: generateId(),
+    const space = {
       _class: core.class.Space,
-      name,
-      lists: []
+      name
     }
-    return createDoc(space)
+    return createVDoc(space as unknown as VDoc)
   }
 
   return {
@@ -142,7 +140,6 @@ export default async (platform: Platform): Promise<CoreService> => {
     query,
     find,
     findOne,
-    createDoc,
     createVDoc,
     createSpace,
     generateId

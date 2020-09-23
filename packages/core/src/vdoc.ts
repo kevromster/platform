@@ -27,7 +27,7 @@ export interface List extends Emb {
   application: Ref<Application>
 }
 
-export interface Space extends Doc {
+export interface Space extends VDoc {
   name: string
   lists: List[]
   users?: string[] // list users (emails) have access to the space; if absent, the space is public (accessible by everyone)
