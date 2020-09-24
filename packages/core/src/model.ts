@@ -232,15 +232,25 @@ export class Model implements Storage {
   // S T O R A G E
 
   async store (doc: Doc): Promise<void> {
+    console.log('Model: STORE', doc)
     this.add(doc)
   }
 
   push (_class: Ref<Class<Doc>>, _id: Ref<Doc>, attribute: string, attributes: any): Promise<void> {
     throw new Error('Method not implemented. model push')
   }
-  update (_class: Ref<Class<Doc>>, selector: object, attributes: any): Promise<void> {
-    throw new Error('Method not implemented. model update')
+
+  async update (_class: Ref<Class<Doc>>, selector: object, attributes: any): Promise<void> {
+    console.log('Model: UPDATE')
+    //throw new Error('Method not implemented. model update')
+
+    const obj = this.get((selector as any)._id)
+
+    for (const key in attributes) {
+      (obj as any)[key] = attributes[key]
+    }
   }
+
   remove (_class: Ref<Class<Doc>>, _id: Ref<Doc>): Promise<void> {
     throw new Error('Method not implemented. model remove')
   }

@@ -16,16 +16,20 @@
 <script type="ts">
   import ScrollView from '@anticrm/sparkling-controls/src/ScrollView.svelte'
   import ReferenceInput from '@anticrm/presentation/src/components/refinput/ReferenceInput.svelte'
+  import Icon from '@anticrm/platform-ui/src/components/Icon.svelte'
   import ChatMessageItem from './ChatMessageItem.svelte'
+  import AddUserToSpace from './AddUserToSpace.svelte'
   import { onDestroy } from 'svelte'
   import core, { QueryResult } from '@anticrm/platform-core';
   import { Ref, Space, StringProperty, VDoc } from '@anticrm/core'
-  import { getChunterService, getCoreService } from '../../utils'
+  import ui from '@anticrm/platform-ui'
+  import { getChunterService, getCoreService, getUIService } from '../../utils'
   import chunter, { Message } from '../..'
   import contact from '@anticrm/contact'
 
   const coreService = getCoreService()
   const chunterService = getChunterService()
+  const uiService = getUIService()
 
   export let space: Ref<Space>
 
@@ -33,21 +37,52 @@
   let messages: Message[] = []
   let chatUsers: Set<string> = new Set<string>()
   let unsubscribe: () => void
+  let unsubscribeSpace: () => void
 
   function subscribe(queryResult: QueryResult<Message>) {
     if (unsubscribe) unsubscribe()
     unsubscribe = queryResult.subscribe(docs => messages = docs)
   }
 
+  function subscribeSpace(queryResult: QueryResult<Space>) {
+    if (unsubscribeSpace) unsubscribeSpace()
+    unsubscribeSpace = queryResult.subscribe(spaceUpdated => {
+      console.log('spaceUpdated:', spaceUpdated)
+      spaceName = spaceUpdated && spaceUpdated.length > 0 ? '#' + spaceUpdated[0].name : ''
+
+      if (spaceUpdated && spaceUpdated.length > 0 && spaceUpdated[0].users) {
+        chatUsers.clear()
+        chatUsers = chatUsers // to track change by Svelte component
+        for (let u of spaceUpdated[0].users) {
+          // TODO: should make one request for all users
+          coreService.then(service => service.findOne(contact.mixin.User, { account: u as StringProperty })).then(res => {
+            if (res) {
+              chatUsers = chatUsers.add(res.name)
+              console.log(`added user '${res.name}'`)
+            }
+          })
+        }
+      } else {
+        chatUsers.clear()
+        chatUsers = chatUsers // to track change by Svelte component
+      }
+    })
+  }
+
   $: {
     coreService.then(service => service.query(chunter.class.Message, { _space: space })).then(queryResult => subscribe(queryResult))
 
     // TODO: use Titles index instead of getting the whole Space object
-    coreService.then(service => service.findOne(core.class.Space, { _id: space })).then(spaceObj => spaceName = spaceObj ? '#' + spaceObj.name : '')
+    //coreService.then(service => service.findOne(core.class.Space, { _id: space })).then(spaceObj => spaceName = spaceObj ? '#' + spaceObj.name : '')
+
+    coreService.then(service => service.query(core.class.Space, { _id: space })).then(queryResult => subscribeSpace(queryResult))
+
+    //chatUsers;
   }
 
+
   // get list of users in the chat
-  coreService.then(service => service.findOne(core.class.Space, { _id: space })).then(spaceObj =>{
+  /*coreService.then(service => service.findOne(core.class.Space, { _id: space })).then(spaceObj =>{
     if (spaceObj && spaceObj.users) {
       for (let u of spaceObj.users) {
         // TODO: should make one request for all users
@@ -59,9 +94,16 @@
         })
       }
     }
-  })
+  })*/
 
-  onDestroy(() => { if(unsubscribe) unsubscribe() })
+  onDestroy(() => {
+    if(unsubscribe) {
+      unsubscribe()
+    }
+    if (unsubscribeSpace) {
+      unsubscribeSpace()
+    }
+  })
 
   function createMessage(message: string) {
     if (message) {
@@ -74,6 +116,12 @@
         })
       })
     }
+  }
+
+  function addUserToSpace() {
+    console.log('addUserToSpace')
+
+    uiService.showModal(AddUserToSpace, {space})
   }
 </script>
 
@@ -89,6 +137,9 @@
         <span>,&nbsp;</span>
       { /if }
     { /each }
+    <a href="/" on:click|preventDefault = {addUserToSpace}>
+      <Icon icon={ui.icon.Add} clazz="icon-embed"/>
+    </a>
   </div>
   <ScrollView stylez="height:100%;" autoscroll=true>
     <div class="content">

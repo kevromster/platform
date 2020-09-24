@@ -143,8 +143,8 @@ export default async (platform: Platform): Promise<CoreService> => {
 
     console.log(`createSpace '${name}' with Id '${spaceId}'`)
 
-    return createVDoc(space as unknown as VDoc).then(result => {
-      return findOne(contact.mixin.User, { account: currentUser }).then(u => {
+    return createVDoc(space as unknown as VDoc).then(() => addUserToSpace(currentUser, spaceId as Ref<Space>, true))
+      /*return findOne(contact.mixin.User, { account: currentUser }).then(u => {
         const userToChange: User = u as User
         const spacesKey: string = mixinKey(contact.mixin.User, 'spaces')
         const spaces = (userToChange as any)[spacesKey]
@@ -166,6 +166,67 @@ export default async (platform: Platform): Promise<CoreService> => {
         }
         return Promise.all([coreProtocol.tx(tx), txProcessor.process(tx)])
       })
+    })*/
+  }
+
+  function addUserToSpace (account: string, space: Ref<Space>, avoidAddSpaceToUser?: boolean): Promise<any> {
+    return findOne(contact.mixin.User, { account: account as StringProperty }).then(user => {
+      if (user) {
+        const spacesKey: string = mixinKey(contact.mixin.User, 'spaces')
+        const spaces = (user as any)[spacesKey]
+
+        if (spaces.indexOf(space) >= 0) {
+          // the user already has this space, nothing to do
+          return
+        }
+
+        spaces.push(space)
+        const updateAttrs: any = {}
+        updateAttrs[spacesKey] = spaces
+
+        const tx: UpdateTx = {
+          _objectId: user._id,
+          _objectClass: user._class,
+          _attributes: updateAttrs,
+
+          _date: Date.now() as DateProperty,
+          _user: platform.getMetadata(login.metadata.WhoAmI) as StringProperty,
+
+          _class: core.class.UpdateTx,
+          _id: generateId()
+        }
+
+        return Promise.all([coreProtocol.tx(tx), txProcessor.process(tx)])
+      }
+    }).then(() => {
+      if (!avoidAddSpaceToUser) {
+        // find space and add the user to the list
+        return findOne(core.class.Space, { _id: space }).then(space => {
+          if (space) {
+            const users = space.users ?? []
+
+            if (users.indexOf(account) >= 0) {
+              // the space already has this user, nothing to do
+              return
+            }
+            users.push(account)
+
+            const tx: UpdateTx = {
+              _objectId: space._id,
+              _objectClass: space._class,
+              _attributes: { users },
+    
+              _date: Date.now() as DateProperty,
+              _user: platform.getMetadata(login.metadata.WhoAmI) as StringProperty,
+    
+              _class: core.class.UpdateTx,
+              _id: generateId()
+            }
+
+            return Promise.all([coreProtocol.tx(tx), txProcessor.process(tx)])
+          }
+        })
+      }
     })
   }
 
@@ -176,6 +237,7 @@ export default async (platform: Platform): Promise<CoreService> => {
     findOne,
     createVDoc,
     createSpace,
+    addUserToSpace,
     generateId
   }
 

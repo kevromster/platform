@@ -68,6 +68,7 @@ export class ModelIndex implements Index {
   }
 
   async tx (tx: Tx): Promise<any> {
+    console.log('ModelIndex.tx()', tx)
     switch (tx._class) {
       case CORE_CLASS_CREATETX:
         const createTx = tx as CreateTx
