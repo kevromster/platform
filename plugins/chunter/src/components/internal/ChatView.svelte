@@ -19,10 +19,10 @@
   import ChatMessageItem from './ChatMessageItem.svelte'
   import { onDestroy } from 'svelte'
   import core, { QueryResult } from '@anticrm/platform-core';
-  import { Ref, Space, VDoc } from '@anticrm/core'
+  import { Ref, Space, StringProperty, VDoc } from '@anticrm/core'
   import { getChunterService, getCoreService } from '../../utils'
   import chunter, { Message } from '../..'
-
+  import contact from '@anticrm/contact'
 
   const coreService = getCoreService()
   const chunterService = getChunterService()
@@ -31,6 +31,7 @@
 
   let spaceName: string
   let messages: Message[] = []
+  let chatUsers: Set<string> = new Set<string>()
   let unsubscribe: () => void
 
   function subscribe(queryResult: QueryResult<Message>) {
@@ -44,6 +45,21 @@
     // TODO: use Titles index instead of getting the whole Space object
     coreService.then(service => service.findOne(core.class.Space, { _id: space })).then(spaceObj => spaceName = spaceObj ? '#' + spaceObj.name : '')
   }
+
+  // get list of users in the chat
+  coreService.then(service => service.findOne(core.class.Space, { _id: space })).then(spaceObj =>{
+    if (spaceObj && spaceObj.users) {
+      for (let u of spaceObj.users) {
+        // TODO: should make one request for all users
+        coreService.then(service => service.findOne(contact.mixin.User, { account: u as StringProperty })).then(res => {
+          if (res) {
+            chatUsers = chatUsers.add(res.name)
+            console.log(`added user '${res.name}'`)
+          }
+        })
+      }
+    }
+  })
 
   onDestroy(() => { if(unsubscribe) unsubscribe() })
 
@@ -64,6 +80,15 @@
 <div class="chat">
   <div>
     <span class="caption-1">Чат {spaceName}</span>&nbsp;
+  </div>
+  <div>
+    <span class="caption-4">Пользователи в чате: </span>
+    { #each Array.from(chatUsers.values()) as username, i }
+      <span>{username}</span>
+      { #if i < chatUsers.size-1 }
+        <span>,&nbsp;</span>
+      { /if }
+    { /each }
   </div>
   <ScrollView stylez="height:100%;" autoscroll=true>
     <div class="content">
