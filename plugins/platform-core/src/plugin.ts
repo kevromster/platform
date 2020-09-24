@@ -16,13 +16,16 @@
 import type { Platform } from '@anticrm/platform'
 import {
   Ref, Class, Doc, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TITLE_DOMAIN, BACKLINKS_DOMAIN,
-  VDoc, Space, generateId as genId, CreateTx, Property, PropertyType, ModelIndex, DateProperty, StringProperty
+  VDoc, Space, generateId as genId, CreateTx, Property, PropertyType, ModelIndex, DateProperty, StringProperty, UpdateTx, mixinKey
 } from '@anticrm/core'
 import { ModelDb } from './modeldb'
 
 import core, { CoreService, QueryResult } from '.'
 import login from '@anticrm/login'
 import rpcService from './rpc'
+
+// TODO: bad dependency?
+import contact, { User } from '@anticrm/contact'
 
 import { TxProcessor, VDocIndex, TitleIndex, TextIndex, TxIndex } from '@anticrm/core'
 
@@ -127,13 +130,43 @@ export default async (platform: Platform): Promise<CoreService> => {
     return createDoc(vdoc)
   }
 
-  function createSpace (name: string): Promise<void> {
+  function createSpace (name: string): Promise<any> {
+    const currentUser = platform.getMetadata(login.metadata.WhoAmI) as StringProperty
+    const spaceId = generateId()
+
     const space = {
+      _id: spaceId,
       _class: core.class.Space,
       name,
-      users: [platform.getMetadata(login.metadata.WhoAmI)]
+      users: [currentUser]
     }
-    return createVDoc(space as unknown as VDoc)
+
+    console.log(`createSpace '${name}' with Id '${spaceId}'`)
+
+    return createVDoc(space as unknown as VDoc).then(result => {
+      return findOne(contact.mixin.User, { account: currentUser }).then(u => {
+        const userToChange: User = u as User
+        const spacesKey: string = mixinKey(contact.mixin.User, 'spaces')
+        const spaces = (userToChange as any)[spacesKey]
+        spaces.push(spaceId as Ref<Space>)
+        const updateAttrs: any = {}
+        updateAttrs[spacesKey] = spaces
+
+        // need update User object
+        const tx: UpdateTx = {
+          _objectId: userToChange._id,
+          _objectClass: userToChange._class,
+          _attributes: updateAttrs,
+
+          _date: Date.now() as DateProperty,
+          _user: platform.getMetadata(login.metadata.WhoAmI) as StringProperty,
+
+          _class: core.class.UpdateTx,
+          _id: generateId()
+        }
+        return Promise.all([coreProtocol.tx(tx), txProcessor.process(tx)])
+      })
+    })
   }
 
   return {
