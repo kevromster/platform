@@ -16,7 +16,7 @@
 import type { Platform } from '@anticrm/platform'
 import {
   Ref, Class, Doc, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TITLE_DOMAIN, BACKLINKS_DOMAIN,
-  VDoc, Space, generateId as genId, CreateTx, Property, PropertyType, ModelIndex, DateProperty, StringProperty, UpdateTx, mixinKey
+  VDoc, Space, generateId as genId, CreateTx, Property, PropertyType, ModelIndex, DateProperty, StringProperty, UpdateTx, mixinKey, CORE_CLASS_UPDATETX
 } from '@anticrm/core'
 import { ModelDb } from './modeldb'
 
@@ -78,7 +78,69 @@ export default async (platform: Platform): Promise<CoreService> => {
   ])
 
   // add listener to process data updates from backend
-  rpc.addEventListener(response => { console.log('eventListner! response:', response); txProcessor.process(response.result as Tx)})
+  rpc.addEventListener(response => {
+    console.log('eventListner! response:', response);
+
+    const tx = response.result as Tx
+
+    // Possibly the updating object doesn't exist yet in the local cache. If so, ask to retrieve a full object from the server.
+    if (tx._class === CORE_CLASS_UPDATETX) {
+      const updateTx = tx as UpdateTx
+      const dm = model.getDomain(updateTx._objectClass)
+
+      if (dm === MODEL_DOMAIN) {
+
+        const objs: Doc[] = model.findSync(updateTx._objectClass, { _id: updateTx._objectId })
+
+        if (!objs || objs.length === 0) {
+
+          // retrieve new object from server
+          coreProtocol.find(updateTx._objectClass, { _id: updateTx._objectId }).then(objects => {
+
+          /*const q1 = { 'object._class': updateTx._objectClass, 'object._id': updateTx._objectId }
+          const q2: any = {}
+          const key1: string = 'object._class'
+          q2[key1] = updateTx._objectClass
+          const key2: string = 'object._id'
+          q2[key2] = updateTx._objectId
+
+          find(core.class.CreateTx, q2).then(objects => {*/
+            console.log('updateTx processing: find() result', objects)
+            // TODO: createTx and call txprocess???
+
+            if (objects) {
+              if (objects.length > 1) {
+                // smth strange, more than one object with the specified id
+                throw new Error(`More than one object found with Id '${updateTx._objectId}'`)
+              }
+
+              /*find(core.class.CreateTx, { object: objects[0] }).then(txs => {
+                console.log('found CreateTX instances:', txs)
+                if (txs) {
+
+                }
+              })*/
+
+              //const tx: CreateTx = {
+              const tx = {
+                _class: core.class.CreateTx,
+                //_id: generateId() as Ref<Doc>,
+                //_date: Date.now() as Property<number, Date>,
+                //_user: platform.getMetadata(login.metadata.WhoAmI) as Property<string, string>,
+                //_space: '_space' in doc ? (doc as any)['_space'] : undefined,
+                object: objects[0]
+              }
+          
+              return txProcessor.process(tx as unknown as Tx)
+            }
+          })
+          return
+        }
+      }
+    }
+
+    txProcessor.process(tx)
+  })
 
   function find<T extends Doc> (_class: Ref<Class<T>>, query: AnyLayout): Promise<T[]> {
     const domainName = model.getDomain(_class)
