@@ -114,6 +114,7 @@ export default async (platform: Platform): Promise<CoreService> => {
       _id: generateId() as Ref<Doc>,
       _date: Date.now() as Property<number, Date>,
       _user: platform.getMetadata(login.metadata.WhoAmI) as Property<string, string>,
+      _space: '_space' in doc ? (doc as any)['_space'] : undefined,
       object: doc
     }
 
@@ -192,6 +193,7 @@ export default async (platform: Platform): Promise<CoreService> => {
 
           _date: Date.now() as DateProperty,
           _user: platform.getMetadata(login.metadata.WhoAmI) as StringProperty,
+          _space: space as unknown as StringProperty,
 
           _class: core.class.UpdateTx,
           _id: generateId()
@@ -219,6 +221,7 @@ export default async (platform: Platform): Promise<CoreService> => {
     
               _date: Date.now() as DateProperty,
               _user: platform.getMetadata(login.metadata.WhoAmI) as StringProperty,
+              _space: space._id as unknown as StringProperty,
     
               _class: core.class.UpdateTx,
               _id: generateId()

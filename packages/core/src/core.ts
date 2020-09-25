@@ -121,6 +121,7 @@ export interface AnyLayout {
 export interface Tx extends Doc {
   _date: DateProperty
   _user: StringProperty
+  _space: StringProperty
 }
 
 export interface Index {
