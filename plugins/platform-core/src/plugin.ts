@@ -78,7 +78,7 @@ export default async (platform: Platform): Promise<CoreService> => {
   ])
 
   // add listener to process data updates from backend
-  rpc.addEventListener(response => txProcessor.process(response.result as Tx))
+  rpc.addEventListener(response => { console.log('eventListner! response:', response); txProcessor.process(response.result as Tx)})
 
   function find<T extends Doc> (_class: Ref<Class<T>>, query: AnyLayout): Promise<T[]> {
     const domainName = model.getDomain(_class)

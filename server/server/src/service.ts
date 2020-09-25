@@ -32,6 +32,8 @@ export interface ClientControl {
   ping (): Promise<void>
   send (response: Response<unknown>): void
   shutdown (): Promise<void>
+  account () : string
+  getUserSpaces () : Promise<Ref<Space>[]>
 }
 
 export async function connect (uri: string, dbName: string, account: string, ws: WebSocket, server: PlatformServer): Promise<CoreProtocol & ClientControl> {
@@ -210,7 +212,7 @@ export async function connect (uri: string, dbName: string, account: string, ws:
 
     async tx (tx: Tx): Promise<void> {
       return txProcessor.process(tx).then(() => {
-        server.broadcast(clientControl, { result: tx })
+        server.broadcast(clientControl, tx._space as unknown as Ref<Space>, { result: tx })
       })
     },
 
@@ -244,7 +246,8 @@ export async function connect (uri: string, dbName: string, account: string, ws:
 
       await Promise.all(Array.from(byDomain.entries()).map(domain => db.collection(domain[0]).insertMany(domain[1])))
 
-      server.broadcast(clientControl, { result: commitInfo })
+      // TODO: get space (from docs in commitInfo?)
+      server.broadcast(clientControl, undefined as unknown as Ref<Space>, { result: commitInfo })
     },
 
     // C O N T R O L
@@ -262,8 +265,13 @@ export async function connect (uri: string, dbName: string, account: string, ws:
 
     serverShutdown (password: string): Promise<void> {
       return server.shutdown(password)
-    }
+    },
 
+    account () : string {
+      return account
+    },
+
+    getUserSpaces
   }
 
   return clientControl
