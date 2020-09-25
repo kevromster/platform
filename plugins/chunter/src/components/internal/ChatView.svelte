@@ -41,7 +41,7 @@
 
   function subscribe(queryResult: QueryResult<Message>) {
     if (unsubscribe) unsubscribe()
-    unsubscribe = queryResult.subscribe(docs => messages = docs)
+    unsubscribe = queryResult.subscribe(docs => {console.log('ChatView: came messages:', docs); messages = docs})
   }
 
   function subscribeSpace(queryResult: QueryResult<Space>) {

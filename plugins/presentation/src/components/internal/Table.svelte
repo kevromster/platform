@@ -32,7 +32,10 @@
 
   function subscribe(qr: QueryResult<Doc>) {
     if (unsubscribe) unsubscribe()
-    unsubscribe = qr.subscribe(docs => { objects = docs })
+    unsubscribe = qr.subscribe(docs => {
+      console.log('TableView: docs came:', docs)
+      objects = docs
+    })
   }
 
   $: getCoreService().then(c => c.query(_class, { _space: space })).then(qr => subscribe(qr))

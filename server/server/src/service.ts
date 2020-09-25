@@ -15,7 +15,7 @@
 
 import { MongoClient, Db } from 'mongodb'
 
-import { Ref, Class, Doc, Model, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TxProcessor, Storage, ModelIndex } from '@anticrm/core'
+import { Ref, Class, Doc, Model, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TxProcessor, Storage, ModelIndex, StringProperty } from '@anticrm/core'
 import { VDocIndex, TitleIndex, TextIndex, TxIndex } from '@anticrm/core'
 
 import WebSocket from 'ws'
@@ -33,9 +33,10 @@ export interface ClientControl {
   shutdown (): Promise<void>
 }
 
-export async function connect (uri: string, dbName: string, ws: WebSocket, server: PlatformServer): Promise<CoreProtocol & ClientControl> {
+export async function connect (uri: string, dbName: string, account: string, ws: WebSocket, server: PlatformServer): Promise<CoreProtocol & ClientControl> {
   console.log('connecting to ' + uri.substring(25))
-  console.log('use ' + dbName)
+  console.log('use dbName ' + dbName)
+  console.log('connected client account ' + account)
   const client = await MongoClient.connect(uri, { useUnifiedTopology: true })
   const db = client.db(dbName)
 
@@ -45,17 +46,97 @@ export async function connect (uri: string, dbName: string, ws: WebSocket, serve
   console.log('model loaded.')
   memdb.loadModel(model)
 
+  // TODO: account may be added to new spaces!
+  const foundAccounts = await rawFind('mixin:contact.User' as Ref<Class<Doc>>, { account: account as StringProperty })
+
+  let filteringSpaces = [null, undefined]
+  if (foundAccounts && foundAccounts.length > 0 && 'spaces|mixin:contact~User' in foundAccounts[0]) {
+    filteringSpaces = filteringSpaces.concat((foundAccounts[0] as any)['spaces|mixin:contact~User'])
+  }
+
+  console.log('filteringSpaces to be used:', filteringSpaces)
+
+  //const filteringSpaces = foundAccounts && foundAccounts.length > 0 && 'spaces|mixin:contact~User' in foundAccounts[0] ? (foundAccounts[0] as any)['spaces|mixin:contact~User'] : []
+
   // const graph = new Graph(memdb)
   // console.log('loading graph...')
   // db.collection(CoreDomain.Tx).find({}).forEach(tx => graph.updateGraph(tx), () => console.log(graph.dump()))
   // console.log('graph loaded.')
 
-  function find (_class: Ref<Class<Doc>>, query: AnyLayout): Promise<Doc[]> {
+  function rawFind (_class: Ref<Class<Doc>>, query: AnyLayout): Promise<Doc[]> {
     const domain = memdb.getDomain(_class)
     const cls = memdb.getClass(_class)
     const q = {}
     memdb.assign(q, _class, query)
     return db.collection(domain).find({ ...q, _class: cls }).toArray()
+  }
+
+  function find (_class: Ref<Class<Doc>>, query: AnyLayout): Promise<Doc[]> {
+    console.log('account in find():', account)
+    // TODO:
+    // У Аккаунта взять список спейсов, куда он входит. 
+    // Добавить в фильтр поиска ограничение на то, чтобы у найденных объектов была принадлежность к данному спейсу (у всех VDoc есть поле _space)
+
+    /*if ('_space' in query) {
+      // check that space
+      const querySpace = query._space as any
+      if (querySpace in filteringSpaces) {
+        // OK, use that filter to query
+      } else {
+        // the requested space is NOT in the list of available to the user!
+      }
+    } else {
+      // no space filter request, use filteringSpaces
+      query._space = { $in: filteringSpaces }
+    }*/
+
+    const domain = memdb.getDomain(_class)
+    const cls = memdb.getClass(_class)
+    const q = {}
+    memdb.assign(q, _class, query)
+
+    // _space у документа: либо undefined|null, либо входит в filteringSpace, иначе объект выбрасывается из результата
+    //{ $elemMatch : { memory_speed : "336 Gbps"} }
+
+    const mongoQuery = { ...q, _class: cls}
+
+    if ('_space' in mongoQuery) {
+      // check user-given '_space' filter
+      const querySpace = mongoQuery['_space']
+
+      if (filteringSpaces.indexOf(querySpace) >= 0) {
+        // OK, use that filter to query
+      } else {
+        // the requested space is NOT in the list of available to the user!
+        console.log('return EMPTY promise!!!!!!!')
+        return Promise.resolve([])
+      }
+    } else {
+      // no user-given '_space' filter, use all spaces available to the user
+      (mongoQuery as any)['_space'] = { $in: filteringSpaces }
+    }
+
+    /*if (!('_space' in mongoQuery)) {
+      (mongoQuery as any)['_space'] = { $in: filteringSpaces }
+    } else {
+      // check that space
+      const querySpace = mongoQuery._space as any
+      if (querySpace in filteringSpaces) {
+        // OK, use that filter to query
+      } else {
+        // the requested space is NOT in the list of available to the user!
+        return []
+      }
+    }*/
+
+    console.log('mongoQuery:', mongoQuery)
+
+    return db.collection(domain).find(mongoQuery).toArray()
+    //return db.collection(domain).find({ ...q, _class: cls}).filter({_space: { $in: filteringSpaces }}).toArray()
+
+    /*const theQ = { _space: { $in: filteringSpaces }, ...q, _class: cls}
+    console.log('mongo query:', theQ)
+    return db.collection(domain).find(theQ).toArray()*/
   }
 
   const mongoStorage: Storage = {
