@@ -44,7 +44,11 @@
 
   getCoreService()
     .then(coreService => coreService.query(core.class.Space, {}))
-    .then(qr => { spaceUnsubscribe = qr.subscribe(docs => { spaces = docs }) })
+    .then(qr => { spaceUnsubscribe = qr.subscribe(docs => {
+      console.log('DefaultPerspective: got spaces to show:', docs)
+      spaces = docs
+    })
+  })
 
   onDestroy(() => { if (spaceUnsubscribe) spaceUnsubscribe() })
 

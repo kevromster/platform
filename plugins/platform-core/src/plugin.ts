@@ -137,6 +137,7 @@ export default async (platform: Platform): Promise<CoreService> => {
     const space = {
       _id: spaceId,
       _class: core.class.Space,
+      _space: spaceId, // the space is available to itself
       name,
       users: [currentUser]
     }

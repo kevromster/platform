@@ -43,7 +43,7 @@ export async function connect (uri: string, dbName: string, account: string, ws:
 
   const memdb = new Model(MODEL_DOMAIN)
   console.log('loading model...')
-  const model = await db.collection('model').find({}).toArray()
+  const model = await db.collection('model').find({ _space: { $in: await getUserSpaces(true) }}).toArray()
   console.log('model loaded.')
   memdb.loadModel(model)
 
@@ -64,8 +64,8 @@ export async function connect (uri: string, dbName: string, account: string, ws:
   // db.collection(CoreDomain.Tx).find({}).forEach(tx => graph.updateGraph(tx), () => console.log(graph.dump()))
   // console.log('graph loaded.')
 
-  async function getUserSpaces (): Promise<Ref<Space>[]> {
-    const user = await findDoc(contact.mixin.User, { account: account as StringProperty })
+  async function getUserSpaces (isFirstTime?: boolean): Promise<Ref<Space>[]> {
+    const user = await (isFirstTime ? findUserFirstTime() : findDoc(contact.mixin.User, { account: account as StringProperty }))
 
     let filteringSpaces: Ref<Space>[] = [null as unknown as Ref<Space>, undefined as unknown as Ref<Space>]
     const spacesKey = mixinKey(contact.mixin.User, 'spaces')
@@ -75,6 +75,14 @@ export async function connect (uri: string, dbName: string, account: string, ws:
     }
 
     return filteringSpaces
+  }
+
+  function findUserFirstTime(): Promise<User|null> {
+    // can't use memdb here because it isn't initialized yet
+    const accountKey = mixinKey(contact.mixin.User, 'account')
+    const mongoQuery: any = { _class: 'class:contact.Person' }
+    mongoQuery[accountKey] = account
+    return db.collection('contact').findOne(mongoQuery)
   }
 
   function findDoc (_class: Ref<Class<Doc>>, query: AnyLayout): Promise<Doc|null> {
@@ -115,7 +123,7 @@ export async function connect (uri: string, dbName: string, account: string, ws:
     const mongoQuery = { ...q, _class: cls}
 
     const filteringSpaces = await getUserSpaces()
-    console.log('got filtering spaces:', filteringSpaces)
+    //console.log('got filtering spaces:', filteringSpaces)
 
     if ('_space' in mongoQuery) {
       // check user-given '_space' filter
@@ -146,7 +154,7 @@ export async function connect (uri: string, dbName: string, account: string, ws:
       }
     }*/
 
-    console.log('mongoQuery:', mongoQuery)
+    //console.log('mongoQuery:', mongoQuery)
 
     return db.collection(domain).find(mongoQuery).toArray()
     //return db.collection(domain).find({ ...q, _class: cls}).filter({_space: { $in: filteringSpaces }}).toArray()
@@ -209,8 +217,11 @@ export async function connect (uri: string, dbName: string, account: string, ws:
     async loadDomain (domain: string): Promise<Doc[]> {
       if (domain === MODEL_DOMAIN)
         return memdb.dump()
+
       console.log('domain:', domain)
-      return db.collection(domain).find({}).toArray()
+      const filteringSpaces = await getUserSpaces()
+
+      return db.collection(domain).find({ _space: { $in: filteringSpaces }}).toArray()
     },
 
     // P R O T C O L  E X T E N S I O N S
