@@ -69,7 +69,8 @@ export async function connect (uri: string, dbName: string, account: string, ws:
   async function getUserSpaces (isFirstTime?: boolean): Promise<Ref<Space>[]> {
     const user = await (isFirstTime ? findUserFirstTime() : findDoc(contact.mixin.User, { account: account as StringProperty }))
 
-    let filteringSpaces: Ref<Space>[] = [null as unknown as Ref<Space>, undefined as unknown as Ref<Space>]
+    // TODO: decide what to do with pre-created General and Random spaces
+    let filteringSpaces: Ref<Space>[] = [null as unknown as Ref<Space>, undefined as unknown as Ref<Space>, 'space:workbench.General' as Ref<Space>, 'space:workbench.Random' as Ref<Space>]
     const spacesKey = mixinKey(contact.mixin.User, 'spaces')
 
     if (user && spacesKey in user) {
