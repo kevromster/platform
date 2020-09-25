@@ -15,8 +15,9 @@
 
 import { MongoClient, Db } from 'mongodb'
 
-import { Ref, Class, Doc, Model, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TxProcessor, Storage, ModelIndex, StringProperty } from '@anticrm/core'
+import { Ref, Class, Doc, Model, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TxProcessor, Storage, ModelIndex, StringProperty, Space, mixinKey } from '@anticrm/core'
 import { VDocIndex, TitleIndex, TextIndex, TxIndex } from '@anticrm/core'
+import contact, { User } from '@anticrm/contact'
 
 import WebSocket from 'ws'
 import { makeResponse, Response } from './rpc'
@@ -47,14 +48,14 @@ export async function connect (uri: string, dbName: string, account: string, ws:
   memdb.loadModel(model)
 
   // TODO: account may be added to new spaces!
-  const foundAccounts = await rawFind('mixin:contact.User' as Ref<Class<Doc>>, { account: account as StringProperty })
+  /*const foundAccounts = await rawFind('mixin:contact.User' as Ref<Class<Doc>>, { account: account as StringProperty })
 
   let filteringSpaces = [null, undefined]
   if (foundAccounts && foundAccounts.length > 0 && 'spaces|mixin:contact~User' in foundAccounts[0]) {
     filteringSpaces = filteringSpaces.concat((foundAccounts[0] as any)['spaces|mixin:contact~User'])
   }
 
-  console.log('filteringSpaces to be used:', filteringSpaces)
+  console.log('filteringSpaces to be used:', filteringSpaces)*/
 
   //const filteringSpaces = foundAccounts && foundAccounts.length > 0 && 'spaces|mixin:contact~User' in foundAccounts[0] ? (foundAccounts[0] as any)['spaces|mixin:contact~User'] : []
 
@@ -63,15 +64,28 @@ export async function connect (uri: string, dbName: string, account: string, ws:
   // db.collection(CoreDomain.Tx).find({}).forEach(tx => graph.updateGraph(tx), () => console.log(graph.dump()))
   // console.log('graph loaded.')
 
-  function rawFind (_class: Ref<Class<Doc>>, query: AnyLayout): Promise<Doc[]> {
+  async function getUserSpaces (): Promise<Ref<Space>[]> {
+    const user = await findDoc(contact.mixin.User, { account: account as StringProperty })
+
+    let filteringSpaces: Ref<Space>[] = [null as unknown as Ref<Space>, undefined as unknown as Ref<Space>]
+    const spacesKey = mixinKey(contact.mixin.User, 'spaces')
+
+    if (user && spacesKey in user) {
+      filteringSpaces = filteringSpaces.concat((user as any)[spacesKey])
+    }
+
+    return filteringSpaces
+  }
+
+  function findDoc (_class: Ref<Class<Doc>>, query: AnyLayout): Promise<Doc|null> {
     const domain = memdb.getDomain(_class)
     const cls = memdb.getClass(_class)
     const q = {}
     memdb.assign(q, _class, query)
-    return db.collection(domain).find({ ...q, _class: cls }).toArray()
+    return db.collection(domain).findOne({ ...q, _class: cls })
   }
 
-  function find (_class: Ref<Class<Doc>>, query: AnyLayout): Promise<Doc[]> {
+  async function find (_class: Ref<Class<Doc>>, query: AnyLayout): Promise<Doc[]> {
     console.log('account in find():', account)
     // TODO:
     // У Аккаунта взять список спейсов, куда он входит. 
@@ -99,6 +113,9 @@ export async function connect (uri: string, dbName: string, account: string, ws:
     //{ $elemMatch : { memory_speed : "336 Gbps"} }
 
     const mongoQuery = { ...q, _class: cls}
+
+    const filteringSpaces = await getUserSpaces()
+    console.log('got filtering spaces:', filteringSpaces)
 
     if ('_space' in mongoQuery) {
       // check user-given '_space' filter
