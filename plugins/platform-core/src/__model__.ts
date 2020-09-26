@@ -73,12 +73,6 @@ class TDoc extends TObj implements Doc {
 export class TApplication extends TDoc implements Application {
 }
 
-@ModelClass(core.class.Space, core.class.Doc, MODEL_DOMAIN)
-export class TSpace extends TDoc implements Space {
-  @Prop() name!: string
-  @Prop() lists!: List[]
-}
-
 // @ModelClass(core.class.Tx, core.class.Doc, TX_DOMAIN)
 // export class TTx extends TDoc implements Tx {
 //   @Prop() _date!: DateProperty
@@ -97,6 +91,13 @@ export class TVDoc extends TDoc implements VDoc {
   @Prop() _createdBy!: StringProperty
   @Prop() _modifiedOn?: DateProperty
   @Prop() _modifiedBy?: StringProperty
+}
+
+@ModelClass(core.class.Space, core.class.VDoc, MODEL_DOMAIN)
+export class TSpace extends TVDoc implements Space {
+  @Prop() name!: string
+  @Prop() lists!: List[]
+  @Prop() users?: string[]
 }
 
 @ModelClass(core.class.Backlinks, core.class.Doc, BACKLINKS_DOMAIN)
@@ -149,6 +150,7 @@ export function model (S: Builder) {
   S.createClass(core.class.Tx, core.class.Doc, {
     _date: S.attr(core.class.Type, {}),
     _user: S.attr(core.class.Type, {}),
+    _space: S.attr(core.class.Type, {}),
   }, TX_DOMAIN)
 
   S.createClass(core.class.CreateTx, core.class.Tx, {
