@@ -28,7 +28,12 @@
     console.log(`addUserToSpace: username = '${username}', space = '${space}'`)
     uiService.closeModal()
 
-    coreService.then(coreService => coreService.addUserToSpace(username, space)).then(r => console.log('AddUserToSpace FINAL result:', r))
+    coreService.then(coreService => coreService.addUserToSpace(username, space))
+      .then(r => console.log('AddUserToSpace FINAL result:', r))
+      .catch(err => {
+        // TODO: show pretty error message to the user
+        console.log('Error adding user to the space!', err)
+      })
   }
 </script>
 

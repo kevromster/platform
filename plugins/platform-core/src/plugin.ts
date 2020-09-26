@@ -263,6 +263,7 @@ export default async (platform: Platform): Promise<CoreService> => {
 
         return Promise.all([coreProtocol.tx(tx), txProcessor.process(tx)])
       }
+      return Promise.reject(`user '${account}' not found`)
     }).then(() => {
       if (!avoidAddSpaceToUser) {
         // find space and add the user to the list
