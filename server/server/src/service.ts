@@ -15,7 +15,7 @@
 
 import { MongoClient, Db } from 'mongodb'
 
-import { Ref, Class, Doc, Model, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TxProcessor, Storage, ModelIndex, StringProperty, Space, mixinKey, SpaceIndex } from '@anticrm/core'
+import { Ref, Class, Doc, Model, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TxProcessor, Storage, ModelIndex, StringProperty, Space, mixinKey, SpaceIndex, CORE_CLASS_CREATETX, CreateTx, CORE_CLASS_SPACE, UpdateTx, CORE_CLASS_UPDATETX } from '@anticrm/core'
 import { VDocIndex, TitleIndex, TextIndex, TxIndex } from '@anticrm/core'
 import contact, { User } from '@anticrm/contact'
 
@@ -33,7 +33,9 @@ export interface ClientControl {
   send (response: Response<unknown>): void
   shutdown (): Promise<void>
   account () : string
-  getUserSpaces () : Promise<Ref<Space>[]>
+  //getUserSpaces () : Promise<Ref<Space>[]>
+  getUserSpaces () : Ref<Space>[]
+  addSpace (space: Ref<Space>): void
 }
 
 export async function connect (uri: string, dbName: string, account: string, ws: WebSocket, server: PlatformServer): Promise<CoreProtocol & ClientControl> {
@@ -43,11 +45,15 @@ export async function connect (uri: string, dbName: string, account: string, ws:
   const client = await MongoClient.connect(uri, { useUnifiedTopology: true })
   const db = client.db(dbName)
 
+  const userSpaces: Ref<Space>[] = []
+
   const memdb = new Model(MODEL_DOMAIN)
   console.log('loading model...')
-  const model = await db.collection('model').find({ _space: { $in: await getUserSpaces(true) }}).toArray()
+  const model = await db.collection('model').find({ _space: { $in: /*await*/ getUserSpaces(true) }}).toArray()
   console.log('model loaded.')
   memdb.loadModel(model)
+
+
 
   // TODO: account may be added to new spaces!
   /*const foundAccounts = await rawFind('mixin:contact.User' as Ref<Class<Doc>>, { account: account as StringProperty })
@@ -66,11 +72,13 @@ export async function connect (uri: string, dbName: string, account: string, ws:
   // db.collection(CoreDomain.Tx).find({}).forEach(tx => graph.updateGraph(tx), () => console.log(graph.dump()))
   // console.log('graph loaded.')
 
-  async function getUserSpaces (isFirstTime?: boolean): Promise<Ref<Space>[]> {
-    const user = await (isFirstTime ? findUserFirstTime() : findDoc(contact.mixin.User, { account: account as StringProperty }))
+  //async function getUserSpaces (isFirstTime?: boolean): Promise<Ref<Space>[]> {
+  function getUserSpaces (isFirstTime?: boolean): Ref<Space>[] {
 
     // TODO: decide what to do with pre-created General and Random spaces
     let filteringSpaces: Ref<Space>[] = [null as unknown as Ref<Space>, undefined as unknown as Ref<Space>, 'space:workbench.General' as Ref<Space>, 'space:workbench.Random' as Ref<Space>]
+
+    /*const user = await (isFirstTime ? findUserFirstTime() : findDoc(contact.mixin.User, { account: account as StringProperty }))
     const spacesKey = mixinKey(contact.mixin.User, 'spaces')
 
     if (user && spacesKey in user) {
@@ -78,6 +86,9 @@ export async function connect (uri: string, dbName: string, account: string, ws:
     }
 
     return filteringSpaces
+    */
+
+    return filteringSpaces.concat(userSpaces ?? [])
   }
 
   function findUserFirstTime(): Promise<User|null> {
@@ -125,7 +136,7 @@ export async function connect (uri: string, dbName: string, account: string, ws:
 
     const mongoQuery = { ...q, _class: cls}
 
-    const filteringSpaces = await getUserSpaces()
+    const filteringSpaces = /*await*/ getUserSpaces()
     //console.log('got filtering spaces:', filteringSpaces)
 
     if ('_space' in mongoQuery) {
@@ -214,7 +225,22 @@ export async function connect (uri: string, dbName: string, account: string, ws:
 
     async tx (tx: Tx): Promise<void> {
       return txProcessor.process(tx).then(() => {
-        server.broadcast(clientControl, tx._space as unknown as Ref<Space>, { result: tx })
+
+        let usersToUpdateSpaceCaches: string[] = []
+
+        // TODO: think where to do it better: in SpaceIndex?
+        // if new space created, update here userSpaces[] array
+        if (tx._class === CORE_CLASS_CREATETX && memdb.is((tx as CreateTx).object._class, CORE_CLASS_SPACE)) {
+          //userSpaces.push((tx as CreateTx).object._id as Ref<Space>)
+          usersToUpdateSpaceCaches.push(account)
+        } else if (tx._class === CORE_CLASS_UPDATETX && memdb.is((tx as UpdateTx)._objectClass, CORE_CLASS_SPACE) && 'users' in (tx as UpdateTx)._attributes) {
+          const touchedSpaceId: Ref<Space> = (tx as UpdateTx)._objectId as Ref<Space>
+          usersToUpdateSpaceCaches = (tx as UpdateTx)._attributes.users
+        }
+
+        // если у нас UpdateTx на спейс, где мы обновили юзера(????), надо забродкастить обновление локальных кэшей userSpaces...
+
+        server.broadcast(clientControl, tx._space as unknown as Ref<Space>, usersToUpdateSpaceCaches, { result: tx })
       })
     },
 
@@ -223,7 +249,7 @@ export async function connect (uri: string, dbName: string, account: string, ws:
         return memdb.dump()
 
       console.log('domain:', domain)
-      const filteringSpaces = await getUserSpaces()
+      const filteringSpaces = /*await*/ getUserSpaces()
 
       return db.collection(domain).find({ _space: { $in: filteringSpaces }}).toArray()
     },
@@ -249,7 +275,7 @@ export async function connect (uri: string, dbName: string, account: string, ws:
       await Promise.all(Array.from(byDomain.entries()).map(domain => db.collection(domain[0]).insertMany(domain[1])))
 
       // TODO: get space (from docs in commitInfo?)
-      server.broadcast(clientControl, undefined as unknown as Ref<Space>, { result: commitInfo })
+      server.broadcast(clientControl, undefined as unknown as Ref<Space>, [], { result: commitInfo })
     },
 
     // C O N T R O L
@@ -273,7 +299,13 @@ export async function connect (uri: string, dbName: string, account: string, ws:
       return account
     },
 
-    getUserSpaces
+    getUserSpaces,
+
+    addSpace(space: Ref<Space>): void {
+      if (userSpaces.indexOf(space) < 0) {
+        userSpaces.push(space)
+      }
+    }
   }
 
   return clientControl

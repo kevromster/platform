@@ -122,12 +122,27 @@ export class SpaceIndex implements Index {
     switch (tx._class) {
       case CORE_CLASS_CREATETX:
         return this.onCreate(tx as CreateTx)
+      case CORE_CLASS_UPDATETX:
+        return this.onUpdate(tx as UpdateTx)
     }
   }
 
   async onCreate (create: CreateTx): Promise<any> {
     if (this.modelDb.is(create.object._class, CORE_CLASS_SPACE))
       return this.onCreateNewSpace(create.object as Space)
+  }
+
+  async onUpdate (update: UpdateTx): Promise<any> {
+    if (this.modelDb.is(update._objectClass, CORE_CLASS_SPACE) && 'users' in update._attributes) {
+      this.onAddNewUsersToExistingSpace(update._attributes.users, update._objectId as Ref<Space>)
+    }
+  }
+
+  private onAddNewUsersToExistingSpace(newUsers : string[], space: Ref<Space>) {
+    // ???
+    console.log('onAddNewUsers [', newUsers, '] toExistingSpace \'' + space + '\'')
+
+    // тут надо только обновить локальные кэши userSpaces, сам спейс обновится через VDocIndex
   }
 
   private async onCreateNewSpace(space: Space): Promise<any> {

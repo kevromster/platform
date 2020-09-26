@@ -234,9 +234,10 @@ export default async (platform: Platform): Promise<CoreService> => {
   }
 
   function addUserToSpace (account: string, space: Ref<Space>, avoidAddSpaceToUser?: boolean): Promise<any> {
+    // find user here just to check it exists with the given account
     return findOne(contact.mixin.User, { account: account as StringProperty }).then(user => {
       if (user) {
-        const spacesKey: string = mixinKey(contact.mixin.User, 'spaces')
+        /*const spacesKey: string = mixinKey(contact.mixin.User, 'spaces')
         const spaces = (user as any)[spacesKey]
 
         if (spaces.indexOf(space) >= 0) {
@@ -261,21 +262,23 @@ export default async (platform: Platform): Promise<CoreService> => {
           _id: generateId()
         }
 
-        return Promise.all([coreProtocol.tx(tx), txProcessor.process(tx)])
+        return Promise.all([coreProtocol.tx(tx), txProcessor.process(tx)])*/
+        return user
       }
       return Promise.reject(`user '${account}' not found`)
-    }).then(() => {
+    }).then(user => {
       if (!avoidAddSpaceToUser) {
         // find space and add the user to the list
         return findOne(core.class.Space, { _id: space }).then(space => {
           if (space) {
             const users = space.users ?? []
 
-            if (users.indexOf(account) >= 0) {
+            if (users.indexOf(user.account) >= 0) {
               // the space already has this user, nothing to do
               return
             }
-            users.push(account)
+            //users.push(account)
+            users.push(user.account)
 
             const tx: UpdateTx = {
               _objectId: space._id,

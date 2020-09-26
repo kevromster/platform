@@ -35,7 +35,7 @@ interface Service {
 type ClientService = Service & ClientControl
 
 export interface PlatformServer {
-  broadcast<R> (from: ClientControl, spaceTouched: Ref<Space>, response: Response<R>): void
+  broadcast<R> (from: ClientControl, spaceTouched: Ref<Space>, usersToUpdateSpaceCaches: string[], response: Response<R>): void
   shutdown (password: string): Promise<void>
 }
 
@@ -50,12 +50,19 @@ export function start (port: number, dbUri: string, host?: string) {
   const connections = [] as Promise<ClientService>[]
 
   const platformServer: PlatformServer = {
-    broadcast<R> (from: ClientControl, spaceTouched: Ref<Space>, response: Response<R>) {
+    broadcast<R> (from: ClientControl, spaceTouched: Ref<Space>, usersToUpdateSpaceCaches: string[], response: Response<R>) {
       for (const client of connections) {
         console.log('broadcasting to ' + connections.length + ' connections')
         client.then(client => {
+
+          // тем клиентам, кто входит в users обновленного спейса, надо позвать addSpace()
+          if (usersToUpdateSpaceCaches.indexOf(client.account()) >= 0) {
+            client.addSpace(spaceTouched)
+          }
+
           if (client !== from) {
-            client.getUserSpaces().then(spaces => {
+            //client.getUserSpaces().then(spaces => {
+            const spaces = client.getUserSpaces()
               if (spaces.indexOf(spaceTouched) >= 0) {
                 console.log('broadcasting to')
                 console.log(client)
@@ -64,7 +71,7 @@ export function start (port: number, dbUri: string, host?: string) {
               } else {
                 console.log(`do not broadcast to user without access to the space '${spaceTouched}'`)
               }
-            })
+            //})
           } else {
             console.log('do not broadcast to self')
           }
