@@ -15,7 +15,7 @@
 
 import { MongoClient, Db } from 'mongodb'
 
-import { Ref, Class, Doc, Model, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TxProcessor, Storage, ModelIndex, StringProperty, Space, mixinKey } from '@anticrm/core'
+import { Ref, Class, Doc, Model, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TxProcessor, Storage, ModelIndex, StringProperty, Space, mixinKey, SpaceIndex } from '@anticrm/core'
 import { VDocIndex, TitleIndex, TextIndex, TxIndex } from '@anticrm/core'
 import contact, { User } from '@anticrm/contact'
 
@@ -195,6 +195,7 @@ export async function connect (uri: string, dbName: string, account: string, ws:
 
   const txProcessor = new TxProcessor([
     new TxIndex(mongoStorage),
+    new SpaceIndex(memdb, mongoStorage, account),
     new VDocIndex(memdb, mongoStorage),
     new TitleIndex(memdb, mongoStorage),
     new TextIndex(memdb, mongoStorage),

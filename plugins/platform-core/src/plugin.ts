@@ -202,12 +202,12 @@ export default async (platform: Platform): Promise<CoreService> => {
       _class: core.class.Space,
       _space: spaceId, // the space is available to itself
       name,
-      users: [currentUser]
+      //users: [currentUser]
     }
 
-    console.log(`createSpace '${name}' with Id '${spaceId}'`)
+    console.log(`CoreService: createSpace '${name}' with Id '${spaceId}'...`)
 
-    return createVDoc(space as unknown as VDoc).then(() => addUserToSpace(currentUser, spaceId as Ref<Space>, true))
+    return createVDoc(space as unknown as VDoc) //.then(() => addUserToSpace(currentUser, spaceId as Ref<Space>, true))
       /*return findOne(contact.mixin.User, { account: currentUser }).then(u => {
         const userToChange: User = u as User
         const spacesKey: string = mixinKey(contact.mixin.User, 'spaces')

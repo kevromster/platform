@@ -44,6 +44,7 @@ export interface VDoc extends Doc {
 }
 
 export const CORE_CLASS_VDOC = 'class:core.VDoc' as Ref<Class<VDoc>>
+export const CORE_CLASS_SPACE = 'class:core.Space' as Ref<Class<Space>>
 
 export class VDocIndex implements Index {
   private modelDb: Model
@@ -103,5 +104,47 @@ export class VDocIndex implements Index {
 
   onUpdate (tx: UpdateTx): Promise<any> {
     return this.storage.update(tx._objectClass, { _id: tx._objectId }, tx._attributes)
+  }
+}
+
+export class SpaceIndex implements Index {
+  private modelDb: Model
+  private storage: Storage
+  private userAccount: string
+
+  constructor (modelDb: Model, storage: Storage, userAccount: string) {
+    this.modelDb = modelDb
+    this.storage = storage
+    this.userAccount = userAccount
+  }
+
+  async tx (tx: Tx): Promise<any> {
+    switch (tx._class) {
+      case CORE_CLASS_CREATETX:
+        return this.onCreate(tx as CreateTx)
+    }
+  }
+
+  async onCreate (create: CreateTx): Promise<any> {
+    if (this.modelDb.is(create.object._class, CORE_CLASS_SPACE))
+      return this.onCreateNewSpace(create.object as Space)
+  }
+
+  private async onCreateNewSpace(space: Space): Promise<any> {
+    // additional work to be done:
+    // - newSpace.addUser(currentAccount)
+    // - currentUSer.addSpace(newSpace)
+
+    const users = space.users ?? []
+
+    if (users.indexOf(this.userAccount) >= 0) {
+      // the space already has this user, nothing to do
+      return
+    }
+
+    users.push(this.userAccount)
+    space.users = users
+
+    // TODO: also have to update user!..
   }
 }
