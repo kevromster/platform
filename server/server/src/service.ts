@@ -45,13 +45,16 @@ export async function connect (uri: string, dbName: string, account: string, ws:
   const client = await MongoClient.connect(uri, { useUnifiedTopology: true })
   const db = client.db(dbName)
 
-  const userSpaces: Ref<Space>[] = []
 
   const memdb = new Model(MODEL_DOMAIN)
   console.log('loading model...')
-  const model = await db.collection('model').find({ _space: { $in: /*await*/ getUserSpaces(true) }}).toArray()
+  //const model = await db.collection('model').find({ _space: { $in: /*await*/ getUserSpaces(true) }}).toArray()
+  const model = await db.collection('model').find({}).toArray()
   console.log('model loaded.')
   memdb.loadModel(model)
+
+  // TODO: load from DB first time!!!
+  const userSpaces: Ref<Space>[] = await getUserSpacesFirstTime()
 
 
 
@@ -71,6 +74,27 @@ export async function connect (uri: string, dbName: string, account: string, ws:
   // console.log('loading graph...')
   // db.collection(CoreDomain.Tx).find({}).forEach(tx => graph.updateGraph(tx), () => console.log(graph.dump()))
   // console.log('graph loaded.')
+
+  async function getUserSpacesFirstTime (): Promise<Ref<Space>[]> {
+    // find spaces where [users] contain the current account
+
+    const _class = 'class:core.Space' as Ref<Class<Space>>
+    const domain = memdb.getDomain(_class)
+    const cls = memdb.getClass(_class)
+
+    //const spaces = await db.collection(domain).find({ users: { $elemMatch: account },  _class: cls }).toArray()
+    const spaces = await db.collection(domain).find({ users: { $elemMatch: { $eq: account } },  _class: cls }).toArray()
+
+    if (!spaces)
+      return []
+
+    const res: Ref<Space>[] = []
+    spaces.map(s => res.push(s._id))
+
+    return res
+
+    //const spaces = await find('class:core.Space' as Ref<Class<Space>>, { users: { $elemMatch: { $eq: account } } })
+  }
 
   //async function getUserSpaces (isFirstTime?: boolean): Promise<Ref<Space>[]> {
   function getUserSpaces (isFirstTime?: boolean): Ref<Space>[] {
