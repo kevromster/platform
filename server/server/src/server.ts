@@ -61,8 +61,8 @@ export function start (port: number, dbUri: string, host?: string) {
           }
 
           if (client !== from) {
-            //client.getUserSpaces().then(spaces => {
-            const spaces = client.getUserSpaces()
+            client.getUserSpaces().then(spaces => {
+            //const spaces = client.getUserSpaces()
               if (spaces.indexOf(spaceTouched) >= 0) {
                 console.log('broadcasting to')
                 console.log(client)
@@ -71,7 +71,7 @@ export function start (port: number, dbUri: string, host?: string) {
               } else {
                 console.log(`do not broadcast to user without access to the space '${spaceTouched}'`)
               }
-            //})
+            })
           } else {
             console.log('do not broadcast to self')
           }
