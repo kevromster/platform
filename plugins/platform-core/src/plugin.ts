@@ -202,7 +202,7 @@ export default async (platform: Platform): Promise<CoreService> => {
       _class: core.class.Space,
       _space: spaceId, // the space is available to itself
       name,
-      //users: [currentUser]
+      users: [currentUser]
     }
 
     console.log(`CoreService: createSpace '${name}' with Id '${spaceId}'...`)
@@ -273,12 +273,12 @@ export default async (platform: Platform): Promise<CoreService> => {
           if (space) {
             const users = space.users ?? []
 
-            if (users.indexOf(user.account) >= 0) {
+            if (users.indexOf(account) >= 0) {
               // the space already has this user, nothing to do
               return
             }
             //users.push(account)
-            users.push(user.account)
+            users.push(account)
 
             const tx: UpdateTx = {
               _objectId: space._id,
@@ -292,6 +292,8 @@ export default async (platform: Platform): Promise<CoreService> => {
               _class: core.class.UpdateTx,
               _id: generateId()
             }
+
+            console.log('make addUserToSpace request: updateTx:', tx)
 
             return Promise.all([coreProtocol.tx(tx), txProcessor.process(tx)])
           }
