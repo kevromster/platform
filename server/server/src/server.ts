@@ -37,6 +37,7 @@ type ClientService = Service & ClientControl
 export interface PlatformServer {
   broadcast<R> (from: ClientControl, to: string[], response: Response<R>): void
   shutdown (password: string): Promise<void>
+  getActiveConnections(account: string): Promise<ClientControl>[]
 }
 
 export function start (port: number, dbUri: string, host?: string) {
@@ -79,6 +80,10 @@ export function start (port: number, dbUri: string, host?: string) {
         }
       }
       httpServer.close()
+    },
+
+    getActiveConnections(account: string): Promise<ClientControl>[] {
+      return connections.get(account) ?? []
     }
   }
 

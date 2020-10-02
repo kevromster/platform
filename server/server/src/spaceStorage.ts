@@ -18,32 +18,76 @@ import { MongoStorage } from './mongo'
 
 export class SpaceStorage implements Storage {
   private proxyStorage: MongoStorage
+  private currentUserAccount: string
 
-  constructor (store: MongoStorage) {
+  // Map of spaces of the current user.
+  // Key - space Id, value - set of user accounts included in the space.
+  private userSpaces: Map<Ref<Space>, Set<string>> = new Map<Ref<Space>, Set<string>>()
+
+  constructor (currentUserAccount: string, store: MongoStorage) {
     this.proxyStorage = store
+    this.currentUserAccount = currentUserAccount
   }
 
-  store (doc: Doc): Promise<void> {
+  // TODO: not need this initialization after implementing lazy cache
+  async initUserSpacesCache () {
+    const spaces = await this.find(CORE_CLASS_SPACE, { _id: { $in: await this.getUserSpaces(this.currentUserAccount) }})
+
+    for (const space of spaces) {
+      this.onAddNewSpace(space)
+    }
+  }
+
+  store (doc: Space): Promise<void> {
+    this.onAddNewSpace(doc)
+
+    // TODO: now assume that insertion to the store is always successful;
+    // need to revert back 'userSpaces' cache change if failed to insert the object
     return this.proxyStorage.store(doc)
   }
 
-  push (_class: Ref<Class<Doc>>, _id: Ref<Doc>, attribute: string, attributes: any): Promise<void> {
+  push (_class: Ref<Class<Doc>>, _id: Ref<Space>, attribute: string, attributes: any): Promise<void> {
+    if (attribute === 'users') {
+      const userToAdd = attributes
+
+      // currently accept only string value for 'users' attribute
+      if (typeof userToAdd !== 'string') {
+        throw new Error(`Bad attributes to be pushed to 'users' collection of the space`)
+      }
+
+      this.onAddNewUserToSpace(_id, userToAdd)
+    }
+
     return this.proxyStorage.push(_class, _id, attribute, attributes)
   }
 
   update (_class: Ref<Class<Doc>>, selector: object, attributes: any): Promise<void> {
+    if ('users' in attributes) {
+      const newSpaceUsers = attributes['users']
+
+      // expect only array of users here
+      if (!Array.isArray(newSpaceUsers)) {
+        throw new Error(`Bad attributes to be updated for 'users' collection of the space`)
+      }
+
+      this.onReplaceUsersInSpace((selector as any)._id as Ref<Space>, newSpaceUsers)
+    }
+
     return this.proxyStorage.update(_class, selector, attributes)
   }
 
   remove (_class: Ref<Class<Doc>>, _id: Ref<Doc>): Promise<void> {
+    // TODO: update cache
     return this.proxyStorage.remove(_class, _id)
   }
 
   find<T extends Doc> (_class: Ref<Class<T>>, query: AnyLayout, options?: AnyLayout): Promise<T[]> {
+    // TODO: initialize cache like in initUserSpacesCache() if it is not yet initialized or obsolete
     return this.proxyStorage.find(_class, query, options)
   }
 
   findOne<T extends Doc> (_class: Ref<Class<T>>, query: AnyLayout, options?: AnyLayout): Promise<T|null> {
+    // TODO: initialize cache like in initUserSpacesCache() if it is not yet initialized or obsolete
     return this.proxyStorage.findOne(_class, query, options)
   }
 
@@ -107,5 +151,64 @@ export class SpaceStorage implements Storage {
     const getOnlySpaceOption = { projection: { _space: true }} as unknown as AnyLayout
     const doc = await this.findOne(_class, { _id }, getOnlySpaceOption)
     return doc ? (doc as any)._space : null
+  }
+
+  /**
+   * Should be called when the current user account has been added into a new space by another user.
+   *
+   * @param space the space the current user added to
+   */
+  onCurrentUserAddedToNewSpace (space: Ref<Space>) {
+     if (!this.userSpaces.has(space)) {
+      this.userSpaces.set(space, new Set<string>([this.currentUserAccount]))
+      // TODO: need update/mark dirty all cache for that space
+
+      // request for getting full list of users in the space
+      this.find(CORE_CLASS_SPACE, { _id: space }).then(spaces => {
+        if (spaces && spaces.length > 0 && spaces[0].users) {
+          for (const user of spaces[0].users) {
+            this.onAddNewUserToSpace(space, user)
+          }
+        }
+      })
+    }
+  }
+
+  // TODO: remove this after implementinc public spaces concept
+  private isPublicSpace (space: Space): boolean {
+    return !space._id || space._id === 'space:workbench.General' || space._id === 'space:workbench.Random'
+  }
+
+  private onAddNewSpace (spaceToBeCreated: Space) {
+    const spaceUsers = new Set<string>(spaceToBeCreated.users ?? [])
+
+    if (spaceUsers.has(this.currentUserAccount) || this.isPublicSpace(spaceToBeCreated)) {
+      this.userSpaces.set(spaceToBeCreated._id as Ref<Space>, spaceUsers)
+    }
+  }
+
+  private onAddNewUserToSpace (spaceToBeUpdated: Ref<Space>, newUser: string) {
+    if (!this.userSpaces.has(spaceToBeUpdated)) {
+      // smth strange if we are here: user rights are checked in the upper code
+      throw new Error(`The account '${this.currentUserAccount}' wanted to change space '${spaceToBeUpdated}' without having rights to do so`)
+    }
+
+    this.userSpaces.get(spaceToBeUpdated)?.add(newUser)
+  }
+
+  private onReplaceUsersInSpace (spaceToBeUpdated: Ref<Space>, newSpaceUsers: string[]) {
+    const newSpaceUsersSet = new Set<string>(newSpaceUsers)
+
+    if (!this.userSpaces.has(spaceToBeUpdated)) {
+      // smth strange if we are here: user rights are checked in the upper code
+      throw new Error(`The account '${this.currentUserAccount}' wanted to change space '${spaceToBeUpdated}' without having rights to do so`)
+    }
+
+    if (newSpaceUsersSet.has(this.currentUserAccount)) {
+      this.userSpaces.set(spaceToBeUpdated, newSpaceUsersSet)
+    } else {
+      // the current user is no longer in space, remove space from cache
+      this.userSpaces.delete(spaceToBeUpdated)
+    }
   }
 }

@@ -66,4 +66,17 @@ export class SpaceIndex implements Index {
       return this.storage.update(tx._objectClass, { _id: tx._objectId }, tx._attributes)
     }
   }
+
+  isModifySpaceUsersTx (tx: Tx): boolean {
+    switch (tx._class) {
+      case CORE_CLASS_UPDATETX:
+        const updateTx = tx as UpdateTx
+        return this.modelDb.is(updateTx._objectClass, CORE_CLASS_SPACE) && 'users' in updateTx._attributes
+      case CORE_CLASS_PUSHTX:
+        const pushTx = tx as PushTx
+        return this.modelDb.is(pushTx._objectClass, CORE_CLASS_SPACE) && pushTx._attribute === 'users';
+      default:
+        return false
+    }
+  }
 }

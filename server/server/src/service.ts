@@ -14,7 +14,7 @@
 //
 
 import { Ref, Class, Doc, AnyLayout, MODEL_DOMAIN, CoreProtocol, Tx, TxProcessor, ModelIndex,
- CORE_CLASS_SPACE, SpaceIndex } from '@anticrm/core'
+ CORE_CLASS_SPACE, SpaceIndex, Space } from '@anticrm/core'
 import { VDocIndex, TitleIndex, TextIndex, TxIndex } from '@anticrm/core'
 
 import WebSocket from 'ws'
@@ -29,6 +29,7 @@ export interface ClientControl {
   ping (): Promise<void>
   send (response: Response<unknown>): void
   shutdown (): Promise<void>
+  onUserAddedToNewSpace (space: Ref<Space>): void
 }
 
 export async function connect (uri: string, dbName: string, account: string, ws: WebSocket, server: PlatformServer): Promise<CoreProtocol & ClientControl> {
@@ -37,15 +38,20 @@ export async function connect (uri: string, dbName: string, account: string, ws:
   await mongoStorage.initialize(uri, dbName)
   const modelDb = mongoStorage.getModelDb()
 
-  const spaceStorage = new SpaceStorage(mongoStorage)
+  const spaceStorage = new SpaceStorage(account, mongoStorage)
+
+  // TODO: not need this initialization after implementing lazy cache
+  await spaceStorage.initUserSpacesCache()
+
   const securityIndex = new SecurityIndex(account, spaceStorage)
+  const spaceIndex = new SpaceIndex(modelDb, spaceStorage)
 
   const txProcessor = new TxProcessor()
   txProcessor
     .add([securityIndex])
     .add([
       new TxIndex(mongoStorage),
-      new SpaceIndex(modelDb, spaceStorage),
+      spaceIndex,
       new VDocIndex(modelDb, mongoStorage),
       new TitleIndex(modelDb, mongoStorage),
       new TextIndex(modelDb, mongoStorage),
@@ -78,6 +84,20 @@ export async function connect (uri: string, dbName: string, account: string, ws:
         // all active connecitons having access to this space should receive notification about the change
         const spaceTouchedByTransaction = tx._space
         const usersToNotify = spaceTouchedByTransaction ? await spaceStorage.getSpaceUsers(spaceTouchedByTransaction) : []
+
+        if (spaceTouchedByTransaction && spaceIndex.isModifySpaceUsersTx(tx)) {
+          // the transaction has modified users of the space, need to update spaceIndexes of their active connections
+          for (const user of usersToNotify) { // TODO: optimize: can go only through added users
+            for (const connection of server.getActiveConnections(user)) {
+              connection.then(c => {
+                if (c !== clientControl) {
+                  c.onUserAddedToNewSpace(spaceTouchedByTransaction)
+                }
+              })
+            }
+          }
+        }
+
         server.broadcast(clientControl, usersToNotify, { result: tx })
       })
     },
@@ -112,6 +132,10 @@ export async function connect (uri: string, dbName: string, account: string, ws:
 
     serverShutdown (password: string): Promise<void> {
       return server.shutdown(password)
+    },
+
+    onUserAddedToNewSpace (space: Ref<Space>): void {
+      spaceStorage.onCurrentUserAddedToNewSpace(space)
     }
   }
 
